@@ -144,6 +144,7 @@ int main(int argc, char* argv[]) {
 				// Choosing which values to use for regression/interpolation
 				// Adapting this to non-zero cashflow. If current rebate + discounted cashflow up to exercise < discounted min rebate
 				// at next exercise date, then do not evaluate. This is changed from if K - S_i > 0 then keep.
+				// This is basically just another method of sub-optimal point elimination that provides a greater lower bound.
 
 				// Taken from last sentence of first paragraph of page 12 of:
 				// https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1331904

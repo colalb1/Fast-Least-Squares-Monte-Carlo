@@ -44,25 +44,123 @@ double get_gaussian() {
 }
 
 // Polynomial regression using (X^T * X)^{-1} * X^T * y
-Eigen::MatrixXd polynomial_regression(Eigen::MatrixXd independent, Eigen::MatrixXd dependent, int order, int num_obs) {
-    // initialize matrices
+Eigen::MatrixXd polynomial_regression(Eigen::MatrixXd independent, Eigen::MatrixXd dependent, const int order, const int num_obs, const string basis_type) {
+    // Initialize matrices
 	Eigen::MatrixXd X(num_obs, order);
 	Eigen::MatrixXd y(num_obs, 1);
 
-    // fill in X and y
-    for (int j = 0; j < order; j++) {
-        for (int i = 0; i < num_obs; i++) {
-            X(i, j) = pow(independent(i, 0), j - 1);
-        }
-    }
+    // Fill in X based on the basis function.
+	// This control flow is verbose but faster since it doesn't have to check basis_type multiple times.
+	// See page 6 of https://jfin-swufe.springeropen.com/articles/10.1186/s40854-015-0019-0 for coefficient definitions.
+	if (basis_type == "Power") {
+		for (int j = 0; j < order; j++) {			// filling up columns
+			for (int i = 0; i < num_obs; i++) {		// filling up rows
+				X(i, j) = pow(independent(i, 0), j);
+			}
+    	}
+	} else if (basis_type == "Laguerre") {
+		for (int j = 0; j < order; j++) {
+			for (int i = 0; i < num_obs; i++) {
+				double eval = 0;
+				for (int m = 0; m < j + 1; m++) {
+					eval += pow(-1, m) * n_choose_k(j, m) / tgamma(m + 1) * pow(independent(i, 0), m);
+				}
+				X(i, j) = eval;
+			}
+    	}
+	} else if (basis_type == "Legendre") {
+		for (int j = 0; j < order; j++) {
+			for (int i = 0; i < num_obs; i++) {
+				double eval = 0;
+				for (int m = 0; m < (j / 2) + 1; m++) {
+					eval += pow(-1, m) * n_choose_k(j, m) * n_choose_k(static_cast<int>(2 * (j - m)), j) * pow(independent(i, 0), j - 2 * m);
+				}
+				X(i, j) = eval * pow(1 / 2, j);
+			}
+    	}
+	} else if (basis_type == "Hermitian") {
+		for (int j = 0; j < order; j++) {
+			for (int i = 0; i < num_obs; i++) {
+				double eval = 0;
+				for (int m = 0; m < (j / 2) + 1; m++) {
+					eval += pow(-1, m) * pow(2 * independent(i, 0), j - 2 * m) / (tgamma(m + 1) * tgamma(static_cast<int>(j - 2 * m) + 1));
+				}
+				X(i, j) = eval * tgamma(j + 1);
+			}
+    	}
+	}
+    
 	
+	// Fill in y
 	for (int i = 0; i < num_obs; i++) {
         y(i, 0) = dependent(i, 0);
     }
 	
-    // solving
+    // Solving
 	return (X.transpose() * X).inverse() * X.transpose() * y;
 }
+
+double adjusted_determination_coef(const double observations[], const double predictions[], const int num_variables) {
+	int num_observations = sizeof(observations) / sizeof(observations[0]);
+
+	// Calculating observation mean for SST
+	double observation_mean = 0;
+	for (int i = 0; i < num_observations; i++) {
+		observation_mean += observations[i];
+	}
+	observation_mean /= num_observations;
+
+	// Calculating Total Sum of Squares (SST)
+	double SST = 0;
+	for (int i = 0; i < num_observations; i++) {
+		SST += pow(observations[i] - observation_mean, 2);
+	}
+
+	// Calculating Residual Sum of Squares (RSS)
+	double SSE = 0;
+	for (int i = 0; i < num_observations; i++) {
+		SSE += pow(observations[i] - predictions[i], 2);
+	}
+
+	// R^2_{adj} formula
+	return 1 - (1 - SSE / SST) * ((num_observations - 1) / (num_observations - 1 - num_variables));
+}
+
+// n_C_k function: https://stackoverflow.com/questions/9330915/number-of-combinations-n-choose-r-in-c
+int n_choose_k(const int n, int k) {
+    if (k > n) {
+		return 0;
+	}
+    if (k * 2 > n) {
+		k = n - k;
+	}
+    if (k == 0) {
+		return 1;
+	}
+
+    int result = n;
+    for(int i = 2; i <= k; i++) {
+        result *= (n - i + 1);
+        result /= i;
+    }
+    return result;
+}
+
+// See page 6 of https://jfin-swufe.springeropen.com/articles/10.1186/s40854-015-0019-0 for coefficient definitions.
+// Legendre coefficient function. Defined on [-1, 1].
+// double legendre_coeffs(const int index, const int max_index) {
+// 	return pow(-2, max_index) * pow(-1, index) * n_choose_k(max_index, index) * n_choose_k(static_cast<int>(2 * (index - max_index)), max_index);
+// }
+
+// // Laguerre polynomial coeffient function. Defined on [0, inf].
+// double laguerre_coeffs(const int index, const int max_index) {
+// 	return n_choose_k(max_index, index) * pow(-1, index) / tgamma(index + 1); // uses gamma function + 1, equiv to factorial
+// }
+
+// // Hermitian polynomial coeffcient function. Defined on [-inf, inf].
+// double hermitian_coeffs(const int index, const int max_index) {
+// 	return tgamma(max_index + 1) * pow(-1, index) / (tgamma(index + 1) * tgamma(static_cast<int>(max_index - 2 * index + 1)));
+// }
 
 int main(int argc, char* argv[]) {
 	// reading arguments
@@ -156,13 +254,6 @@ int main(int argc, char* argv[]) {
 							independent_vars(num_paths, 0) = asset_price[j][i];
 							dependent_vars(num_paths, 0) = value[j] / R;
 						}
-
-						// I spent so long fucking around with this if condition and didn't realize I flipped the sign
-						// if (asset_price[j][i] - K < 0) {
-						// 	num_paths++;
-						// 	independent_vars(num_paths, 0) = asset_price[j][i];
-						// 	dependent_vars(num_paths, 0) = value[j] / R;
-						// }
 					} else {
 						if ((K - asset_price[j][i]) + (K - asset_price[j][i + 1]) / R * exp(r * i / num_divisions * T) > 
 							(K - asset_price[j][i + 1]) / R * exp(r * (i + 1) / num_divisions * T)) {
@@ -170,36 +261,52 @@ int main(int argc, char* argv[]) {
 							independent_vars(num_paths, 0) = asset_price[j][i];
 							dependent_vars(num_paths, 0) = value[j] / R;
 						}
-						// if (K - asset_price[j][i] > 0) {
-						// 	num_paths++;
-						// 	independent_vars(num_paths, 0) = asset_price[j][i];
-						// 	dependent_vars(num_paths, 0) = value[j] / R;
-						// }
 					}
 				}
 				
 				if (num_paths > 0) {
 					// regressing the dependent_variables on the independent variables using a 4th order polynomial
-					// Laguerre basis; change this later. This provides a lower bound (for call) but not an upper bound (for call)
+					// Power basis; change this later. This provides a lower bound (for call) but not an upper bound (for call)
+
+					// The bases that will be checked are Power, Legendre, Laguerre, and Hermite A.
 					int poly_degree = min(num_paths, 10);
 					Eigen::MatrixXd a(poly_degree, 1);
-					a = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths);
+					a = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, "Power");
+					double greatest_r_sq_adj = 0;
+					double optimal_poly_eval;
 					
 					for (int j = 0; j < num_trials; j++) {
-						double poly_eval = 0;
+						double power_poly_eval = 0;
+						// double legendre_poly_eval = 0;
+						// double laguerre_poly_eval = 0;
+						// double hermite_poly_eval = 0;
 
+						// Calculating polynomial evaluations of each.
+						// Each path will choose the optimal basis by maximizing R^2_adj.
+
+						// THE BASIS NEEDS TO BE TAKEN CARE OF IN THE POLYNOMIAL REGRESSION FUNCTION
 						for (int l = 0; l < poly_degree; l++) {
-							poly_eval += a(l, 0) * pow(asset_price[j][i], l);
+							power_poly_eval += a(l, 0) * pow(asset_price[j][i], l);
+							// laguerre_poly_eval += laguerre_coeffs(l, poly_degree - 1) * pow(asset_price[j][i], l);
+							// if (l <= poly_degree / 2) {
+							// 	legendre_poly_eval += legendre_coeffs(l, poly_degree - 1) * pow(asset_price[j][i], poly_degree - 1 - 2 * l);
+							// 	hermite_poly_eval += hermitian_coeffs(l, poly_degree - 1) * pow(2 * asset_price[j][i], poly_degree - 1 - 2 * l);
+							// }
 						}
 						
+						adjusted_determination_coef;
+						optimal_poly_eval = 4;
+
 						if (call_flag == 1) {
-							if (((asset_price[j][i] - K) > poly_eval) && ((asset_price[j][i] - K) > 0.0)) {
+							// (S - K) > poly_eval is the Andersen trigger method for which convergence is sped up.
+							// This maximizes the average cutoff over the simulated paths.
+							if (((asset_price[j][i] - K) > optimal_poly_eval) && ((asset_price[j][i] - K) > 0.0)) {
 								value[j] = asset_price[j][i] - K;
 							} else {
 								value[j] /= R;
 							}
 						} else {
-							if (((K - asset_price[j][i]) > poly_eval) && ((K - asset_price[j][i]) > 0.0)) {
+							if (((K - asset_price[j][i]) > optimal_poly_eval) && ((K - asset_price[j][i]) > 0.0)) {
 								value[j] = K - asset_price[j][i];
 							} else {
 								value[j] /= R;

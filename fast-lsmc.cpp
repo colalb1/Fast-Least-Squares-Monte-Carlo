@@ -256,9 +256,9 @@ int main(int argc, char* argv[]) {
 					Eigen::MatrixXd X;
 
 					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, "Power");
-					double greatest_r_sq_adj = 0;
+					// double greatest_r_sq_adj = 0;
 					
-					string basis_methods[4] = {"Power", "Laguerre", "Legendre", "Hermitian"};
+					// string basis_methods[4] = {"Power", "Laguerre", "Legendre", "Hermitian"};
 
 					// Iterating through the methods and choosing the one with the greatest R^2_adj value
 					// for (int i = 0; i < 4; i++) {

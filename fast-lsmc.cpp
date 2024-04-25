@@ -75,7 +75,7 @@ tuple<Eigen::MatrixXd, Eigen::MatrixXd> polynomial_regression(Eigen::MatrixXd in
 	if (basis_type == "Power") {
 		for (int j = 0; j < order; j++) {			// filling up columns
 			for (int i = 0; i < num_obs; i++) {		// filling up rows
-				X(i, j) = pow(independent(i, 0), j);
+				X(i, j) = pow(independent(i, 0), j - 1);
 			}
     	}
 	} else if (basis_type == "Laguerre") {
@@ -114,6 +114,7 @@ tuple<Eigen::MatrixXd, Eigen::MatrixXd> polynomial_regression(Eigen::MatrixXd in
     // Solving and returning (X, beta)
 	return make_tuple(X, (X.transpose() * X).inverse() * X.transpose() * y);
 }
+
 
 double adjusted_determination_coef(Eigen::MatrixXd observations, Eigen::MatrixXd predictions, int num_variables) {
 	int num_observations = observations.rows();
@@ -256,25 +257,25 @@ int main(int argc, char* argv[]) {
 					Eigen::MatrixXd X;
 
 					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, "Power");
-					// double greatest_r_sq_adj = 0;
+					double greatest_r_sq_adj = 0;
 					
-					// string basis_methods[4] = {"Power", "Laguerre", "Legendre", "Hermitian"};
+					string basis_methods[4] = {"Power", "Laguerre", "Legendre", "Hermitian"};
 
 					// Iterating through the methods and choosing the one with the greatest R^2_adj value
-					// for (int i = 0; i < 4; i++) {
-					// 	Eigen::MatrixXd a_temp(poly_degree, 1);
-					// 	Eigen::MatrixXd X;
-					// 	tie(X, a_temp) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, basis_methods[i]);
+					for (int i = 0; i < 4; i++) {
+						Eigen::MatrixXd a_temp(poly_degree, 1);
+						Eigen::MatrixXd X;
+						tie(X, a_temp) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, basis_methods[i]);
 						
 						
-					// 	Eigen::MatrixXd y_hat = X * a_temp;
-					// 	double r_sq_adj_temp = adjusted_determination_coef(dependent_vars.topRows(y_hat.rows()), y_hat, a_temp.rows());
+						Eigen::MatrixXd y_hat = X * a_temp;
+						double r_sq_adj_temp = adjusted_determination_coef(dependent_vars.topRows(y_hat.rows()), y_hat, a_temp.rows());
 
-					// 	if (r_sq_adj_temp > greatest_r_sq_adj) {
-					// 		a_optimal = a_temp;
-					// 		greatest_r_sq_adj = r_sq_adj_temp;
-					// 	}
-					// }
+						if (r_sq_adj_temp > greatest_r_sq_adj) {
+							a_optimal = a_temp;
+							greatest_r_sq_adj = r_sq_adj_temp;
+						}
+					}
 					
 					// Calculating the polynomial at the given point.
 					for (int j = 0; j < num_trials; j++) {

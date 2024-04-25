@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
 				
 				if (num_paths > 0) {
 					// regressing the dependent_variables on the independent variables
-					// The bases that will be checked are Power, Legendre, Laguerre, and Hermite A.
+					// The bases that will be checked are Power, Laguerre, and Hermite A.
 					int poly_degree = min(num_paths, 5);
 					Eigen::MatrixXd a_optimal(poly_degree, 1);
 					Eigen::MatrixXd X;
@@ -257,8 +257,8 @@ int main(int argc, char* argv[]) {
 					string basis_methods[3] = {"Power", "Laguerre", "Hermitian"};
 
 					// Checking whether bases work
-					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, "Laguerre");
-					best_basis = "Laguerre";
+					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, "Hermitian");
+					best_basis = "Hermitian";
 
 
 
@@ -304,27 +304,14 @@ int main(int argc, char* argv[]) {
 								}
 								optimal_poly_eval += poly_eval;
 							}
-						} 
-						// else if (basis_type == "Laguerre") {
-						// 	for (int j = 0; j < order; j++) {
-						// 		for (int i = 0; i < num_obs; i++) {
-						// 			double poly_eval = 0;
-
-						// 			for (int m = 0; m < j + 1; m++) {
-						// 				poly_eval += n_choose_k(j, m) / tgamma(m + 1) * pow(-independent(i, 0), m);
-						// 			}
-						// 			X(i, j) = poly_eval;
-						// 		}
-						// 	}
-						// }
-						
-						else if (best_basis == "Hermitian") {
+						} else if (best_basis == "Hermitian") {
 							for (int l = 0; l < poly_degree; l++) {
 								double poly_eval = 0;
-								for (int m = 0; m < (j / 2) + 1; m++) {
-									poly_eval += pow(-1, m) * pow(2 * asset_price[j][i], j - 2 * m) / (tgamma(m + 1) * tgamma(static_cast<int>(j - 2 * m) + 1));
+
+								for (int m = 0; m < (l / 2) + 1; m++) {
+									poly_eval += pow(-1, m) * pow(2 * asset_price[j][i], l - 2 * m) / (tgamma(m + 1) * tgamma(static_cast<int>(l - 2 * m) + 1));
 								}
-								optimal_poly_eval += tgamma(j + 1) * poly_eval;
+								optimal_poly_eval += tgamma(l + 1) * poly_eval;
 							}
 						}
 						

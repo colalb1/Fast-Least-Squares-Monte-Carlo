@@ -81,27 +81,22 @@ tuple<Eigen::MatrixXd, Eigen::MatrixXd> polynomial_regression(Eigen::MatrixXd in
 	} else if (basis_type == "Laguerre") {
 		for (int j = 0; j < order; j++) {
 			for (int i = 0; i < num_obs; i++) {
+				double poly_eval = 0;
+
 				for (int m = 0; m < j + 1; m++) {
-					X(i, j) += pow(-1, m) * n_choose_k(j, m) / tgamma(m + 1) * pow(independent(i, 0), m);
+					poly_eval += n_choose_k(j, m) / tgamma(m + 1) * pow(-independent(i, 0), m);
 				}
-			}
-    	}
-	} else if (basis_type == "Legendre") {
-		for (int j = 0; j < order; j++) {
-			for (int i = 0; i < num_obs; i++) {
-				for (int m = 0; m < (j / 2) + 1; m++) {
-					X(i, j) += pow(-1, m) * n_choose_k(j, m) * n_choose_k(static_cast<int>(2 * (j - m)), j) * pow(independent(i, 0), j - 2 * m);
-				}
-				X(i, j) *= pow(1 / 2, j);
+				X(i, j) = poly_eval;
 			}
     	}
 	} else if (basis_type == "Hermitian") {
 		for (int j = 0; j < order; j++) {
 			for (int i = 0; i < num_obs; i++) {
+				double poly_eval = 0;
 				for (int m = 0; m < (j / 2) + 1; m++) {
-					X(i, j) += pow(-1, m) * pow(2 * independent(i, 0), j - 2 * m) / (tgamma(m + 1) * tgamma(static_cast<int>(j - 2 * m) + 1));
+					poly_eval += pow(-1, m) * pow(2 * independent(i, 0), j - 2 * m) / (tgamma(m + 1) * tgamma(static_cast<int>(j - 2 * m) + 1));
 				}
-				X(i, j) *= tgamma(j + 1);
+				X(i, j) = tgamma(j + 1) * poly_eval;
 			}
     	}
 	}
@@ -169,7 +164,7 @@ int main(int argc, char* argv[]) {
 	cout << "American Option Pricing using (Modified) Longstaff and Schwartz's Least Squares Monte Carlo Simulation" << endl;
 	cout << "Expiration Time (Years) = " << T << endl;
 	cout << "Risk Free Interest Rate = " << r << endl;
-	cout << "Volatility (%age of stock value) = " << sigma * 100 << endl;
+	cout << "Volatility (Percentage of stock value) = " << sigma * 100 << endl;
 	cout << "Initial Stock Price = " << S_0 << endl;
 	cout << "Strike Price = " << K << endl;
 	cout << "Number of Simulations = " << num_sims << endl;
@@ -252,40 +247,87 @@ int main(int argc, char* argv[]) {
 				if (num_paths > 0) {
 					// regressing the dependent_variables on the independent variables
 					// The bases that will be checked are Power, Legendre, Laguerre, and Hermite A.
-					int poly_degree = min(num_paths, 10);
+					int poly_degree = min(num_paths, 5);
 					Eigen::MatrixXd a_optimal(poly_degree, 1);
 					Eigen::MatrixXd X;
 
-					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, "Power");
 					double greatest_r_sq_adj = 0;
+					string best_basis = "Power";		// Initializing to Power since Power checked first
 					
-					string basis_methods[4] = {"Power", "Laguerre", "Legendre", "Hermitian"};
+					string basis_methods[3] = {"Power", "Laguerre", "Hermitian"};
+
+					// Checking whether bases work
+					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, "Laguerre");
+					best_basis = "Laguerre";
+
+
+
 
 					// Iterating through the methods and choosing the one with the greatest R^2_adj value
-					for (int i = 0; i < 4; i++) {
-						Eigen::MatrixXd a_temp(poly_degree, 1);
-						Eigen::MatrixXd X;
-						tie(X, a_temp) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, basis_methods[i]);
+					// for (int i = 0; i < 3; i++) {
+					// 	Eigen::MatrixXd a_temp(poly_degree, 1);
+					// 	Eigen::MatrixXd X;
+					// 	tie(X, a_temp) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, basis_methods[i]);
 						
 						
-						Eigen::MatrixXd y_hat = X * a_temp;
-						double r_sq_adj_temp = adjusted_determination_coef(dependent_vars.topRows(y_hat.rows()), y_hat, a_temp.rows());
+					// 	Eigen::MatrixXd y_hat = X * a_temp;
+					// 	double r_sq_adj_temp = adjusted_determination_coef(dependent_vars.topRows(y_hat.rows()), y_hat, a_temp.rows());
 
-						if (r_sq_adj_temp > greatest_r_sq_adj) {
-							a_optimal = a_temp;
-							greatest_r_sq_adj = r_sq_adj_temp;
-						}
-					}
+					// 	if (r_sq_adj_temp > greatest_r_sq_adj) {
+					// 		a_optimal = a_temp;
+					// 		greatest_r_sq_adj = r_sq_adj_temp;
+					// 		best_basis = basis_methods[i];
+					// 	}
+					// }
 					
+
+
+
+
 					// Calculating the polynomial at the given point.
 					for (int j = 0; j < num_trials; j++) {
 						double optimal_poly_eval = 0;
 
 						// Calculating polynomial evaluation.
-						// THE BASIS NEEDS TO BE TAKEN CARE OF IN THE POLYNOMIAL REGRESSION FUNCTION
-						for (int l = 0; l < poly_degree; l++) {
-							optimal_poly_eval += a_optimal(l, 0) * pow(asset_price[j][i], l);
+						// THE BASIS NEEDS TO BE TAKEN CARE OF IN THE POLYNOMIAL REGRESSIsON FUNCTION
+						if (best_basis == "Power") {
+							for (int l = 0; l < poly_degree; l++) {
+								// Polynomial evaluation with different bases
+								optimal_poly_eval += a_optimal(l, 0) * pow(asset_price[j][i], l);
+							}
+						} else if (best_basis == "Laguerre") {
+							for (int l = 0; l < poly_degree; l++) {
+								double poly_eval = 0;
+
+								for (int m = 0; m < l + 1; m++) {
+									poly_eval += n_choose_k(l, m) / tgamma(m + 1) * pow(-asset_price[j][i], m);
+								}
+								optimal_poly_eval += poly_eval;
+							}
+						} 
+						// else if (basis_type == "Laguerre") {
+						// 	for (int j = 0; j < order; j++) {
+						// 		for (int i = 0; i < num_obs; i++) {
+						// 			double poly_eval = 0;
+
+						// 			for (int m = 0; m < j + 1; m++) {
+						// 				poly_eval += n_choose_k(j, m) / tgamma(m + 1) * pow(-independent(i, 0), m);
+						// 			}
+						// 			X(i, j) = poly_eval;
+						// 		}
+						// 	}
+						// }
+						
+						else if (best_basis == "Hermitian") {
+							for (int l = 0; l < poly_degree; l++) {
+								double poly_eval = 0;
+								for (int m = 0; m < (j / 2) + 1; m++) {
+									poly_eval += pow(-1, m) * pow(2 * asset_price[j][i], j - 2 * m) / (tgamma(m + 1) * tgamma(static_cast<int>(j - 2 * m) + 1));
+								}
+								optimal_poly_eval += tgamma(j + 1) * poly_eval;
+							}
 						}
+						
 
 						if (call_flag == 1) {
 							// (S - K) > poly_eval is the Andersen trigger method for which convergence is sped up.

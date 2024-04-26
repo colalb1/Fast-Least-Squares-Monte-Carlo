@@ -9,4 +9,4 @@ Might abandon choosing the best basis since the point of this is to be faster; t
 
 
 ## My Review of C++
-Fast. Also makes me want to scoop my eyes out.
+Fast. Hard to debug.

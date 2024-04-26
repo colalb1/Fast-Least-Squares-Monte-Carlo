@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 	sscanf(argv[6], "%d", &num_divisions);	// # grid steps
 	sscanf(argv[7], "%d", &num_sims);		// number simulations
 	sscanf(argv[8], "%d", &call_flag);		// call (1) or put (0)
-	sscanf(argv[9], "%d", &basis);			// Power, Laguerre, Hermitian
+	basis = argv[9];						// Power, Laguerre, Hermitian
 
     // defining time, rate, and SD step lengths
     double dt = T / ((double) num_divisions);
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
 	cout << "American Option Pricing using (Modified) Longstaff and Schwartz's Least Squares Monte Carlo Simulation" << endl;
 	cout << "Expiration Time (Years) = " << T << endl;
 	cout << "Risk Free Interest Rate = " << r << endl;
-	cout << "Volatility (Percentage of stock value) = " << sigma * 100 << endl;
+	cout << "Volatility = " << sigma << endl;
 	cout << "Initial Stock Price = " << S_0 << endl;
 	cout << "Strike Price = " << K << endl;
 	cout << "Number of Simulations = " << num_sims << endl;
@@ -248,39 +248,10 @@ int main(int argc, char* argv[]) {
 				
 				if (num_paths > 0) {
 					// regressing the dependent_variables on the independent variables
-					// The bases that will be checked are Power, Laguerre, and Hermite A.
 					int poly_degree = min(num_paths, 5);
 					Eigen::MatrixXd a_optimal(poly_degree, 1);
 					Eigen::MatrixXd X;
-
-					double greatest_r_sq_adj = 0;
-
-					// Checking whether bases work
 					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, basis);
-
-
-
-
-					// Iterating through the methods and choosing the one with the greatest R^2_adj value
-					// for (int i = 0; i < 3; i++) {
-					// 	Eigen::MatrixXd a_temp(poly_degree, 1);
-					// 	Eigen::MatrixXd X;
-					// 	tie(X, a_temp) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, basis_methods[i]);
-						
-						
-					// 	Eigen::MatrixXd y_hat = X * a_temp;
-					// 	double r_sq_adj_temp = adjusted_determination_coef(dependent_vars.topRows(y_hat.rows()), y_hat, a_temp.rows());
-
-					// 	if (r_sq_adj_temp > greatest_r_sq_adj) {
-					// 		a_optimal = a_temp;
-					// 		greatest_r_sq_adj = r_sq_adj_temp;
-					// 		best_basis = basis_methods[i];
-					// 	}
-					// }
-					
-
-
-
 
 					// Calculating the polynomial at the given point.
 					for (int j = 0; j < num_trials; j++) {

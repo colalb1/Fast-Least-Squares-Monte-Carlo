@@ -93,6 +93,7 @@ tuple<Eigen::MatrixXd, Eigen::MatrixXd> polynomial_regression(Eigen::MatrixXd in
 		for (int j = 0; j < order; j++) {
 			for (int i = 0; i < num_obs; i++) {
 				double poly_eval = 0;
+
 				for (int m = 0; m < (j / 2) + 1; m++) {
 					poly_eval += pow(-1, m) * pow(2 * independent(i, 0), j - 2 * m) / (tgamma(m + 1) * tgamma(static_cast<int>(j - 2 * m) + 1));
 				}
@@ -189,16 +190,15 @@ int main(int argc, char* argv[]) {
 		
 		if (num_trials > 0) {
 			double asset_price[num_trials][num_divisions];
-
-			// Setting initial price
-			for (int i = 0; i < num_trials; i++) {
-                asset_price[i][0] = S_0;
-            }
 			
-			// Generating random path
+			// Setting initial price and generating random path
 			for (int i = 0; i < num_trials; i++) {
-                for (int j = 1; j < num_divisions; j++) {
-                    asset_price[i][j] = asset_price[i][j - 1] * exp(dR + dSD * get_gaussian());
+                for (int j = 0; j < num_divisions; j++) {
+					if (j == 0) {
+						asset_price[i][j] = S_0;
+					} else {
+						asset_price[i][j] = asset_price[i][j - 1] * exp(dR + dSD * get_gaussian());
+					}
                 }
             }
             
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
 
 				// Taken from last sentence of first paragraph of page 12 of:
 				// https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1331904
-				for (int j = 0; j < num_trials; j++) {
+				for (int j = 0; j < num_trials - 1; j++) {
 					if (call_flag == 1) {
 						if ((asset_price[j][i] - K) + (asset_price[j][i + 1] - K) / R * exp(r * i / num_divisions * T) < 
 							(asset_price[j][i + 1] - K) / R * exp(r * (i + 1) / num_divisions * T)) {
@@ -257,8 +257,8 @@ int main(int argc, char* argv[]) {
 					string basis_methods[3] = {"Power", "Laguerre", "Hermitian"};
 
 					// Checking whether bases work
-					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, "Hermitian");
-					best_basis = "Hermitian";
+					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, "Power");
+					best_basis = "Power";
 
 
 
@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
 								optimal_poly_eval += tgamma(l + 1) * poly_eval;
 							}
 						}
-						
+
 
 						if (call_flag == 1) {
 							// (S - K) > poly_eval is the Andersen trigger method for which convergence is sped up.

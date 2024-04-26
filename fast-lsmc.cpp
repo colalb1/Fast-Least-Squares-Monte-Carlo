@@ -22,6 +22,7 @@ default_random_engine generator;
 // Initializing variables
 double r, K, S_0, T, sigma;
 int num_trials, num_divisions, num_sims, call_flag;
+string basis;
 
 // Max and min functions
 double max(double a, double b) {
@@ -153,6 +154,7 @@ int main(int argc, char* argv[]) {
 	sscanf(argv[6], "%d", &num_divisions);	// # grid steps
 	sscanf(argv[7], "%d", &num_sims);		// number simulations
 	sscanf(argv[8], "%d", &call_flag);		// call (1) or put (0)
+	sscanf(argv[9], "%d", &basis);			// Power, Laguerre, Hermitian
 
     // defining time, rate, and SD step lengths
     double dt = T / ((double) num_divisions);
@@ -252,13 +254,9 @@ int main(int argc, char* argv[]) {
 					Eigen::MatrixXd X;
 
 					double greatest_r_sq_adj = 0;
-					string best_basis = "Power";		// Initializing to Power since Power checked first
-					
-					string basis_methods[3] = {"Power", "Laguerre", "Hermitian"};
 
 					// Checking whether bases work
-					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, "Power");
-					best_basis = "Power";
+					tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, basis);
 
 
 
@@ -290,12 +288,12 @@ int main(int argc, char* argv[]) {
 
 						// Calculating polynomial evaluation.
 						// THE BASIS NEEDS TO BE TAKEN CARE OF IN THE POLYNOMIAL REGRESSIsON FUNCTION
-						if (best_basis == "Power") {
+						if (basis == "Power") {
 							for (int l = 0; l < poly_degree; l++) {
 								// Polynomial evaluation with different bases
 								optimal_poly_eval += a_optimal(l, 0) * pow(asset_price[j][i], l);
 							}
-						} else if (best_basis == "Laguerre") {
+						} else if (basis == "Laguerre") {
 							for (int l = 0; l < poly_degree; l++) {
 								double poly_eval = 0;
 
@@ -304,7 +302,7 @@ int main(int argc, char* argv[]) {
 								}
 								optimal_poly_eval += poly_eval;
 							}
-						} else if (best_basis == "Hermitian") {
+						} else if (basis == "Hermitian") {
 							for (int l = 0; l < poly_degree; l++) {
 								double poly_eval = 0;
 

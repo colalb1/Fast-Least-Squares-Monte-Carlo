@@ -7,6 +7,8 @@ Attempting to implement a method that chooses the best basis between Power, Lagu
 
 Might abandon choosing the best basis since the point of this is to be faster; this makes it slower although more accurate. *Edit:* The basis optimizer was not more accurate. It should have been in theory. Changed the basis to an input between the Power, Laguerre, and Hermitian bases since this decreases computation time (which was part of the point of this program anyway).
 
+Restricted policy iteration by stratifying each potential path by its value and used continuation of previous regression.
+
 
 ## My Review of C++
 Fast. Hard to debug.

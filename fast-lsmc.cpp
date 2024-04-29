@@ -181,6 +181,11 @@ int main(int argc, char* argv[]) {
 
     // Iterating through blocks, this is to limit memory usage since solving using num_sims would use big matrices.
 	// The outcome is the same doing it this way.
+
+	// Stratification and double-regression enhancement from https://www.sciencedirect.com/science/article/pii/S0165188913000493
+	// cannot be done since each region is only one timestep long since this is an American option as opposed to 
+	// a Bermudan option. This means I must implement other optimizations. Batched iteration also prevents this since I need
+	// access to all of the paths.
     for (int k = 0; k <= (num_sims / 200); k++) {
 		
 		// setting trial number
@@ -193,7 +198,8 @@ int main(int argc, char* argv[]) {
 		if (num_trials > 0) {
 			double asset_price[num_trials][num_divisions];
 			
-			// Setting initial price and generating random path
+			// Setting initial price and generating random path.
+			// Want to only use the current column; will write below this for loop
 			for (int i = 0; i < num_trials; i++) {
                 for (int j = 0; j < num_divisions; j++) {
 					if (j == 0) {
@@ -203,6 +209,121 @@ int main(int argc, char* argv[]) {
 					}
                 }
             }
+			
+			////////////////////////////////////////////////////////////////////
+			// BEGIN Dev block (Brownian Bridge method)
+			////////////////////////////////////////////////////////////////////
+			if (0 == 1) {
+				double asset_price_column[num_trials];
+				double value[num_trials];
+
+				// Calculating last point
+				for (int i = 0; i < num_trials; i++) {
+					// Initializing end price
+					asset_price_column[i] = S_0 * exp((r - pow(sigma, 2) / 2) * T + sigma * sqrt(T) * get_gaussian());
+
+					// Calculating payoff
+					if (call_flag == 1) {
+						value[i] = max(0.0, asset_price_column[i] - K);
+					} else {
+						value[i] = max(0.0, K - asset_price_column[i]);
+					}
+				}
+
+				for (int i = (num_divisions - 1); i > 0; i--) {
+					Eigen::MatrixXd independent_vars(num_trials, 1);
+					Eigen::MatrixXd dependent_vars(num_trials, 1);
+
+					int num_paths = 0;
+
+					// Choosing which values to use for regression/interpolation
+					// Adapting this to non-zero cashflow. If current rebate + discounted cashflow up to exercise < discounted min rebate
+					// at next exercise date, then do not evaluate. This is changed from if K - S_i > 0 then keep.
+					// This is basically just another method of sub-optimal point elimination that provides a greater lower bound.
+
+					// Taken from last sentence of first paragraph of page 12 of:
+					// https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1331904
+					for (int j = 0; j < num_trials - 1; j++) {
+						if (call_flag == 1) {
+							if ((asset_price[j][i] - K) + (asset_price[j][i + 1] - K) / R * exp(r * i / num_divisions * T) < 
+								(asset_price[j][i + 1] - K) / R * exp(r * (i + 1) / num_divisions * T)) {
+								num_paths++;
+								independent_vars(num_paths, 0) = asset_price[j][i];
+								dependent_vars(num_paths, 0) = value[j] / R;
+							}
+						} else {
+							if ((K - asset_price[j][i]) + (K - asset_price[j][i + 1]) / R * exp(r * i / num_divisions * T) > 
+								(K - asset_price[j][i + 1]) / R * exp(r * (i + 1) / num_divisions * T)) {
+								num_paths++;
+								independent_vars(num_paths, 0) = asset_price[j][i];
+								dependent_vars(num_paths, 0) = value[j] / R;
+							}
+						}
+					}
+					
+					if (num_paths > 0) {
+						// regressing the dependent_variables on the independent variables
+						int poly_degree = min(num_paths, 5);
+						Eigen::MatrixXd a_optimal(poly_degree, 1);
+						Eigen::MatrixXd X;
+						tie(X, a_optimal) = polynomial_regression(independent_vars, dependent_vars, poly_degree, num_paths, basis);
+
+						// Calculating the polynomial at the given point.
+						for (int j = 0; j < num_trials; j++) {
+							double optimal_poly_eval = 0;
+
+							// Calculating polynomial evaluation.
+							// THE BASIS NEEDS TO BE TAKEN CARE OF IN THE POLYNOMIAL REGRESSIsON FUNCTION
+							if (basis == "Power") {
+								for (int l = 0; l < poly_degree; l++) {
+									// Polynomial evaluation with different bases
+									optimal_poly_eval += a_optimal(l, 0) * pow(asset_price[j][i], l);
+								}
+							} else if (basis == "Laguerre") {
+								for (int l = 0; l < poly_degree; l++) {
+									double poly_eval = 0;
+
+									for (int m = 0; m < l + 1; m++) {
+										poly_eval += n_choose_k(l, m) / tgamma(m + 1) * pow(-asset_price[j][i], m);
+									}
+									optimal_poly_eval += poly_eval;
+								}
+							} else if (basis == "Hermitian") {
+								for (int l = 0; l < poly_degree; l++) {
+									double poly_eval = 0;
+
+									for (int m = 0; m < (l / 2) + 1; m++) {
+										poly_eval += pow(-1, m) * pow(2 * asset_price[j][i], l - 2 * m) / (tgamma(m + 1) * tgamma(static_cast<int>(l - 2 * m) + 1));
+									}
+									optimal_poly_eval += tgamma(l + 1) * poly_eval;
+								}
+							}
+
+
+							if (call_flag == 1) {
+								// (S - K) > poly_eval is the Andersen trigger method for which convergence is sped up.
+								// This maximizes the average cutoff over the simulated paths.
+								if (((asset_price[j][i] - K) > optimal_poly_eval) && ((asset_price[j][i] - K) > 0.0)) {
+									value[j] = asset_price[j][i] - K;
+								} else {
+									value[j] /= R;
+								}
+							} else {
+								if (((K - asset_price[j][i]) > optimal_poly_eval) && ((K - asset_price[j][i]) > 0.0)) {
+									value[j] = K - asset_price[j][i];
+								} else {
+									value[j] /= R;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			////////////////////////////////////////////////////////////////////
+			// END Dev block
+			////////////////////////////////////////////////////////////////////
+
             
 			double value[num_trials];
 

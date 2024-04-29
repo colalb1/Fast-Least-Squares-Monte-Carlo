@@ -11,6 +11,8 @@ Restricted policy iteration by stratifying each potential path by its value and 
 
 Stratification and double-regression enhancement from https://www.sciencedirect.com/science/article/pii/S0165188913000493 cannot be done since each region is only one timestep long since this is an American option as opposed to a Bermudan option. This means I must implement other optimizations. Batched iteration also prevents this since I need access to all of the paths.
 
+Currently implementing Brownian Bridge method to reduce space requirements since only one time iteration needs to be stored at a time instead of the whole simulation. More technical explanation on this after implementation is complete.
+
 
 ## My Review of C++
 Fast. Hard to debug.

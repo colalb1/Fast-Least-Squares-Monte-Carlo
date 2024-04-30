@@ -112,7 +112,7 @@ tuple<Eigen::MatrixXd, Eigen::MatrixXd> polynomial_regression(Eigen::MatrixXd in
 	return make_tuple(X, (X.transpose() * X).inverse() * X.transpose() * y);
 }
 
-
+// This function is dead; was supposed to be used for selecting the basis programmatically but that was slow 
 double adjusted_determination_coef(Eigen::MatrixXd observations, Eigen::MatrixXd predictions, int num_variables) {
 	int num_observations = observations.rows();
 	
@@ -143,7 +143,7 @@ double adjusted_determination_coef(Eigen::MatrixXd observations, Eigen::MatrixXd
 	return 1 - (1 - SSE / SST) * ((num_observations - 1) / (num_observations - 1 - num_variables));
 }
 
-// Don't use Hermitian or Laguerre for deep out-of-the-money puts
+// Hermitian or Laguerre when T > 1 and K < S_0 overestimate the option price
 int main(int argc, char* argv[]) {
 	// reading arguments
     sscanf(argv[1], "%lf", &T); 			// expiry time
@@ -328,5 +328,6 @@ int main(int argc, char* argv[]) {
 		cout << "American Option Price = " << option_price / ((double) num_sims / 200)  << endl;
 	else 
 		cout << "Option Price = " << option_price / ((double) num_sims / 200 + 1) << endl;
+	
+	return 0;
 }
-// Hypothetically, this should be more accurate and faster than the standard LS. I'm a complete imbecile so maybe not.

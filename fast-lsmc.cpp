@@ -214,19 +214,18 @@ int main(int argc, char* argv[]) {
 			// BEGIN Dev block (Brownian Bridge method)
 			////////////////////////////////////////////////////////////////////
 			if (0 == 1) {
-				double asset_price_column[num_trials];
-				double value[num_trials];
+				double brownian_bridge_values[num_trials], next_brownian_bridge_values[num_trials], value[num_trials];
 
 				// Calculating last point
 				for (int i = 0; i < num_trials; i++) {
-					// Initializing end price
-					asset_price_column[i] = S_0 * exp((r - pow(sigma, 2) / 2) * T + sigma * sqrt(T) * get_gaussian());
+					// Initializing end price, potential issue since not multiplying by sqrt(T) for Weiner process
+					brownian_bridge_values[i] = (r - pow(sigma, 2) / 2) * T + sigma * get_gaussian();
 
 					// Calculating payoff
 					if (call_flag == 1) {
-						value[i] = max(0.0, asset_price_column[i] - K);
+						value[i] = max(0.0, S_0 * exp(brownian_bridge_values[i]) - K);
 					} else {
-						value[i] = max(0.0, K - asset_price_column[i]);
+						value[i] = max(0.0, K - S_0 * exp(brownian_bridge_values[i]));
 					}
 				}
 
@@ -236,6 +235,11 @@ int main(int argc, char* argv[]) {
 
 					int num_paths = 0;
 
+					// Initializing next Brownian Bridge values since they're needed for the choice of values
+					for (int l = 0; l < num_trials; l++) {
+						next_brownian_bridge_values[l] = (i * T / (i + 1)) * brownian_bridge_values[l] + sigma * sqrt(i * T * dt / (i + 1)) * get_gaussian();
+					}
+
 					// Choosing which values to use for regression/interpolation
 					// Adapting this to non-zero cashflow. If current rebate + discounted cashflow up to exercise < discounted min rebate
 					// at next exercise date, then do not evaluate. This is changed from if K - S_i > 0 then keep.
@@ -244,18 +248,21 @@ int main(int argc, char* argv[]) {
 					// Taken from last sentence of first paragraph of page 12 of:
 					// https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1331904
 					for (int j = 0; j < num_trials - 1; j++) {
+						double current_value = S_0 * exp(brownian_bridge_values[j]);
+						double next_value = S_0 * exp(next_brownian_bridge_values[j]);
+
 						if (call_flag == 1) {
-							if ((asset_price[j][i] - K) + (asset_price[j][i + 1] - K) / R * exp(r * i / num_divisions * T) < 
-								(asset_price[j][i + 1] - K) / R * exp(r * (i + 1) / num_divisions * T)) {
+							if ((current_value - K) + (next_value - K) / R * exp(r * i / num_divisions * T) < 
+								(next_value - K) / R * exp(r * (i + 1) / num_divisions * T)) {
 								num_paths++;
-								independent_vars(num_paths, 0) = asset_price[j][i];
+								independent_vars(num_paths, 0) = current_value;
 								dependent_vars(num_paths, 0) = value[j] / R;
 							}
 						} else {
-							if ((K - asset_price[j][i]) + (K - asset_price[j][i + 1]) / R * exp(r * i / num_divisions * T) > 
-								(K - asset_price[j][i + 1]) / R * exp(r * (i + 1) / num_divisions * T)) {
+							if ((K - current_value) + (K - next_value) / R * exp(r * i / num_divisions * T) > 
+								(K - next_value) / R * exp(r * (i + 1) / num_divisions * T)) {
 								num_paths++;
-								independent_vars(num_paths, 0) = asset_price[j][i];
+								independent_vars(num_paths, 0) = current_value;
 								dependent_vars(num_paths, 0) = value[j] / R;
 							}
 						}
@@ -271,20 +278,21 @@ int main(int argc, char* argv[]) {
 						// Calculating the polynomial at the given point.
 						for (int j = 0; j < num_trials; j++) {
 							double optimal_poly_eval = 0;
+							double current_value = S_0 * exp(brownian_bridge_values[j]);
 
 							// Calculating polynomial evaluation.
 							// THE BASIS NEEDS TO BE TAKEN CARE OF IN THE POLYNOMIAL REGRESSIsON FUNCTION
 							if (basis == "Power") {
 								for (int l = 0; l < poly_degree; l++) {
 									// Polynomial evaluation with different bases
-									optimal_poly_eval += a_optimal(l, 0) * pow(asset_price[j][i], l);
+									optimal_poly_eval += a_optimal(l, 0) * pow(current_value, l);
 								}
 							} else if (basis == "Laguerre") {
 								for (int l = 0; l < poly_degree; l++) {
 									double poly_eval = 0;
 
 									for (int m = 0; m < l + 1; m++) {
-										poly_eval += n_choose_k(l, m) / tgamma(m + 1) * pow(-asset_price[j][i], m);
+										poly_eval += n_choose_k(l, m) / tgamma(m + 1) * pow(-current_value, m);
 									}
 									optimal_poly_eval += poly_eval;
 								}
@@ -293,7 +301,7 @@ int main(int argc, char* argv[]) {
 									double poly_eval = 0;
 
 									for (int m = 0; m < (l / 2) + 1; m++) {
-										poly_eval += pow(-1, m) * pow(2 * asset_price[j][i], l - 2 * m) / (tgamma(m + 1) * tgamma(static_cast<int>(l - 2 * m) + 1));
+										poly_eval += pow(-1, m) * pow(2 * current_value, l - 2 * m) / (tgamma(m + 1) * tgamma(static_cast<int>(l - 2 * m) + 1));
 									}
 									optimal_poly_eval += tgamma(l + 1) * poly_eval;
 								}
@@ -303,18 +311,23 @@ int main(int argc, char* argv[]) {
 							if (call_flag == 1) {
 								// (S - K) > poly_eval is the Andersen trigger method for which convergence is sped up.
 								// This maximizes the average cutoff over the simulated paths.
-								if (((asset_price[j][i] - K) > optimal_poly_eval) && ((asset_price[j][i] - K) > 0.0)) {
-									value[j] = asset_price[j][i] - K;
+								if (((current_value - K) > optimal_poly_eval) && ((current_value - K) > 0.0)) {
+									value[j] = current_value - K;
 								} else {
 									value[j] /= R;
 								}
 							} else {
-								if (((K - asset_price[j][i]) > optimal_poly_eval) && ((K - asset_price[j][i]) > 0.0)) {
-									value[j] = K - asset_price[j][i];
+								if (((K - current_value) > optimal_poly_eval) && ((K - current_value) > 0.0)) {
+									value[j] = K - current_value;
 								} else {
 									value[j] /= R;
 								}
 							}
+						}
+
+						// Updating path values
+						for (int l = 0; l < num_trials; l++) {
+							brownian_bridge_values[l] = next_brownian_bridge_values[l];
 						}
 					}
 				}

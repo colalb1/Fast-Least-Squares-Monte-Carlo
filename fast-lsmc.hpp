@@ -257,12 +257,12 @@ Eigen::MatrixXd polynomial_regression_original(Eigen::MatrixXd Independent_Varia
 	Eigen::MatrixXd X(no_of_observations, order);
 	Eigen::MatrixXd Y(no_of_observations, 1);
 	
-	for (int i = 1; i <= no_of_observations; i++)
-		Y(i,1) = Dependent_Variable(i,1);
+	for (int i = 0; i < no_of_observations; i++)
+		Y(i,0) = Dependent_Variable(i,0);
 	
 	for (int j = 1; j <= order; j++) 
-		for (int i = 1; i <= no_of_observations; i++) 
-			X(i,j) = pow(Independent_Variables(i,1), j-1);
+		for (int i = 0; i < no_of_observations; i++) 
+			X(i,j - 1) = pow(Independent_Variables(i,0), j - 1);
 	
 	// return inv(XT*X)*XT*Y
 	Eigen::MatrixXd X_transpose_times_X(order, order);
@@ -308,12 +308,15 @@ double option_value_original(double expiration_time, double risk_free_rate, doub
 					value[i] = max(0.0, asset_price[i][no_of_divisions-1] - strike_price);
 			
 			for (int i = (no_of_divisions-1); i > 0; i--) {
-				Eigen::MatrixXd independent_variables(no_of_trials,1);
-				Eigen::MatrixXd dependent_variables(no_of_trials,1);
+				Eigen::MatrixXd independent_variables(no_of_trials + 1,1);
+				Eigen::MatrixXd dependent_variables(no_of_trials + 1,1);
+				
 				int no_of_variables = 0;
 				for (int j = 0; j < no_of_trials; j++) {
 					if (max(0.0, strike_price - asset_price[j][i]) > 0 && call_flag == 0) {
 						no_of_variables++;
+						// cout << "kinda before1" << endl;
+						// cout << no_of_variables << endl;
 						independent_variables(no_of_variables, 0) = asset_price[j][i];
 						dependent_variables(no_of_variables, 0) = value[j]/R;
 					} else if (max(0.0, asset_price[j][i] - strike_price) > 0 && call_flag == 1) {
@@ -326,7 +329,7 @@ double option_value_original(double expiration_time, double risk_free_rate, doub
 				
 				if (no_of_variables > 0) {
 					// regressing the dependent_variables on the independent variables using a 4th order polynomial
-					Eigen::MatrixXd a(min(5,no_of_variables),1);
+					Eigen::MatrixXd a(min(5,no_of_variables), 1);
 					a = polynomial_regression_original(independent_variables, dependent_variables, min(5,no_of_variables), no_of_variables);
 					if (no_of_variables >= 5) {
 						for (int j = 0; j < no_of_trials; j++) {
@@ -374,7 +377,6 @@ double option_value_original(double expiration_time, double risk_free_rate, doub
 								else
 									value[j] = value[j]/R;
 						}
-						
 					}
 					else if (no_of_variables == 3) {
 						for (int j = 0; j < no_of_trials; j++) {
@@ -433,7 +435,6 @@ double option_value_original(double expiration_time, double risk_free_rate, doub
 					
 				}
 			}
-			
 			double local_option_price = 0.0;
 			for (int j = 0; j < no_of_trials; j++) 
 				local_option_price += value[j];

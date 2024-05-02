@@ -1,5 +1,5 @@
 # Fast Least Squares Monte Carlo
-Fast implementation of Least-Squares Monte Carlo aka Longstaff Schwartz in C++. This project is in early development.
+Fast implementation of Least-Squares Monte Carlo aka Longstaff Schwartz in C++. This project is in development.
 
 The original Longstaff Schwartz implementation was provided by [R.S.](https://rsree.ise.illinois.edu/Prof._R.S._Sreenivas_%28Main%29.html) of the UIUC Industrial Engineering Department. I will be augmenting this method.
 
@@ -11,7 +11,7 @@ Restricted policy iteration by stratifying each potential path by its value and 
 
 Stratification and double-regression enhancement from [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) cannot be done since each region is only one timestep long since this is an American option as opposed to a Bermudan option. This means I must implement other optimizations. Batched iteration also prevents this since I need access to all of the paths.
 
-Currently implementing Brownian Bridge method to reduce space requirements since only one time iteration needs to be stored at a time instead of the whole simulation. More technical explanation on this after implementation is complete.
+Currently implementing Brownian Bridge method to reduce space requirements since only one time iteration needs to be stored at a time instead of the whole simulation. I will write a more technical explanation of this after I finish the project, but for now reference [this](https://en.wikipedia.org/wiki/Brownian_bridge) for an explanation. Simply put, I choose the last price first then walk backward toward the original price. I reckon this is not as "random" but achieves a similar outcome with much less memory since I only need to keep track of the current simulation instead of all the simulation timesteps.
 
 
 ## My Review of C++

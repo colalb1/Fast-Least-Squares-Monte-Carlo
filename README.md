@@ -15,4 +15,4 @@ Currently implementing Brownian Bridge method to reduce space requirements since
 
 
 ## My Review of C++
-Fast. Hard to debug.
+Fast. Really slow to debug. This was my first time writing C++ so if there are any glaring errors or easy optimizations that I missed, let me know.

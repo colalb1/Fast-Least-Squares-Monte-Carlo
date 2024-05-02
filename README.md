@@ -1,5 +1,5 @@
 # Fast Least Squares Monte Carlo
-Fast implementation of Least-Squares Monte Carlo aka Longstaff Schwartz in C++. This project is in development.
+Fast implementation of Least-Squares Monte Carlo aka Longstaff Schwartz in C++. This project is in development, meaning the code and description are not complete.
 
 ## Files
 [fast-lsmc.cpp](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/fast-lsmc.cpp) contains the optimized methods for Longstaff-Schwartz and serves as a calculator.

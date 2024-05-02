@@ -69,6 +69,10 @@ int main() {
     vector<double> optimized_price_store = {};
     vector<double> basis_store = {};
     vector<double> call_flag_store = {};
+    vector<double> original_computation_time = {};
+    vector<double> optimized_computation_time = {};
+
+
 
     // Excuse the asymptotic runtime of this for loop. This is a time for which Python would exponentially simplify things.
     // Calculating prices and filling in data vectors
@@ -82,6 +86,8 @@ int main() {
                 // Calls
                 for (int l = 0; l < call_strikes.size(); l++) {
                     // Price of the original method since I will be saving it for each basis function
+                    // Starting computation time
+                    const clock_t original_begin_time = clock();
                     double temp_price = option_value_original(expiry_time[i], 
                                                               risk_free_rates[j], 
                                                               volatilities[k], 
@@ -90,6 +96,8 @@ int main() {
                                                               num_divisions_, 
                                                               num_sims_, 
                                                               1);
+                    // Stopping computation time and calculating
+                    double original_duration = double(clock() - original_begin_time) / CLOCKS_PER_SEC;
 
                     // Bases
                     for (int m = 0; m < sizeof(bases); m++) {
@@ -102,6 +110,9 @@ int main() {
                         basis_store.push_back(m);
 
                         original_price_store.push_back(temp_price);
+                        original_computation_time.push_back(original_duration);
+
+                        const clock_t optimized_begin_time = clock();
                         optimized_price_store.push_back(option_value(expiry_time[i],
                                                                      risk_free_rates[j], 
                                                                      volatilities[k], 
@@ -111,11 +122,15 @@ int main() {
                                                                      num_sims_, 
                                                                      1, 
                                                                      bases[m]));
+                        double optimized_duration = double(clock() - optimized_begin_time) / CLOCKS_PER_SEC;
+                        optimized_computation_time.push_back(optimized_duration);
                     }
                 }
                 // Puts
                 for (int l = 0; l < put_strikes.size(); l++) {
                     // Price of the original method since I will be saving it for each basis function
+                    // Starting computation time
+                    const clock_t original_begin_time = clock();
                     double temp_price = option_value_original(expiry_time[i], 
                                                               risk_free_rates[j], 
                                                               volatilities[k], 
@@ -124,6 +139,8 @@ int main() {
                                                               num_divisions_, 
                                                               num_sims_, 
                                                               0);
+                    // Stopping computation time and calculating
+                    double original_duration = double(clock() - original_begin_time) / CLOCKS_PER_SEC;
 
                     // Bases
                     for (int m = 0; m < sizeof(bases); m++) {
@@ -136,6 +153,9 @@ int main() {
                         basis_store.push_back(m);
 
                         original_price_store.push_back(temp_price);
+                        original_computation_time.push_back(original_duration);
+
+                        const clock_t optimized_begin_time = clock();
                         optimized_price_store.push_back(option_value(expiry_time[i],
                                                                      risk_free_rates[j], 
                                                                      volatilities[k], 
@@ -145,6 +165,8 @@ int main() {
                                                                      num_sims_, 
                                                                      0, 
                                                                      bases[m]));
+                        double optimized_duration = double(clock() - optimized_begin_time) / CLOCKS_PER_SEC;
+                        optimized_computation_time.push_back(optimized_duration);
                     }
                 } 
             }

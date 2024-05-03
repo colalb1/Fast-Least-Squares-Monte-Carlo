@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <chrono>
 #include "fast-lsmc.hpp"
+#include <thread>
 
 using namespace std;
 
@@ -72,6 +73,8 @@ int main() {
     vector<double> original_computation_time = {};
     vector<double> optimized_computation_time = {};
 
+    // creating mutex to protect the vectors I push back on
+    mutex vector_mutex;
 
 
     // Excuse the asymptotic runtime of this for loop. This is a time for which Python would exponentially simplify things.
@@ -98,6 +101,57 @@ int main() {
                                                               1);
                     // Stopping computation time and calculating
                     double original_duration = double(clock() - original_begin_time) / CLOCKS_PER_SEC;
+                    
+
+                    // Setting up multithreading thread ppol
+                    std::vector<std::thread> thread_pool;
+
+
+
+                    // THERE ARE TOO MANY INPUTS FOR A LAMBDA FUNCTION; USE REGULAR FUNCTION INSTEAD
+                    // lambda functions for each basis computation
+                    void computation_task(int index) {
+                        
+                        // Saving data
+                        expiry_time_store.push_back(expiry_time[i]);
+                        risk_free_rates_store.push_back(risk_free_rates[j]);
+                        volatilities_store.push_back(volatilities[k]);
+                        strikes_store.push_back(call_strikes[l]);
+                        call_flag_store.push_back(1);
+                        basis_store.push_back(m);
+
+                        original_price_store.push_back(temp_price);
+                        original_computation_time.push_back(original_duration);
+
+                        const clock_t optimized_begin_time = clock();
+                        optimized_price_store.push_back(option_value(expiry_time[i],
+                                                                     risk_free_rates[j], 
+                                                                     volatilities[k], 
+                                                                     starting_price, 
+                                                                     call_strikes[l], 
+                                                                     num_divisions_, 
+                                                                     num_sims_, 
+                                                                     1, 
+                                                                     bases[index]));
+                        double optimized_duration = double(clock() - optimized_begin_time) / CLOCKS_PER_SEC;
+                        optimized_computation_time.push_back(optimized_duration);
+                    };
+
+                    // Enqueue computations to thread pool
+                    for (int m = 0; m < sizeof(bases); m++) {
+                        // This guard placement might be wrong; come back to this
+                        lock_guard<mutex> lock(vector_mutex);
+                        thread_pool.emplace_back(thread(computation_task(m)));
+                    }
+
+                    
+
+                    // Join threads to main thread
+                    for (auto& thread:thread_pool) {
+                        if (thread.joinable()) {
+                            thread.join();
+                        }
+                    }
 
                     // Bases
                     for (int m = 0; m < sizeof(bases); m++) {

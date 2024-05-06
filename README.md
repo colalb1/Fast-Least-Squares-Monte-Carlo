@@ -1,5 +1,5 @@
 # Fast Least Squares Monte Carlo
-Fast implementation of Least-Squares Monte Carlo (Longstaff-Schwartz) in C++. This project is in development; the code and description are incomplete.
+Fast implementation of Least-Squares Monte Carlo (Longstaff-Schwartz) for American options in C++. This project is in development; the code and description are incomplete.
 
 ## Precursor
 
@@ -31,6 +31,19 @@ I will omit further explanation of the bases for brevity; refer to the top of pa
 I implemented a method that programmatically chose the optimal basis based on which had the greatest $R^2_{adj}$ value via [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper. I abandoned this idea because there is no way (that I know of) around computing the regression three times for each iteration, and this significantly increased computation time. This works well in theory, but having nearly three times the computation time for (even) a significant accuracy gain is not worth it.
 
 ### Path Conditions
+
+In Least-Squares Monte Carlo methods for options pricing, the condition $(S - K) > 0$ or $(K - S) > 0$ for calls and puts, respectively, is imposed on the price paths to select the path data that will be used for regression to generate the equation that predicts the option price at the previous step. [This](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper tightened this restriction to a non-zero cash flow and showed an accuracy increase due to the greater lower bound for sub-optimal point eliminations. Thus, the condition changes to the following (assume time $t$ is discrete):
+
+$$(S_{t} - K) + (S_{t + 1} - K) * exp(-r(T - 2t)) < (S_{t + 1} - K) * exp(-r(T - 2(t + 1)))$$
+
+for calls and
+
+$$(K - S_{t}) + (K - S_{t + 1}) * exp(-r(T - 2t)) > (K - S_{t + 1}) * exp(-r(T - 2(t + 1)))$$
+
+for puts. Put simply, a path is excluded if the price in the previous step does not reach a certain threshold based on the decay imposed by the risk-free rate.
+
+
+
 
 Adapted path conditions to non-zero cash flow to increase accuracy. This provides a greater lower bound for sub-optimal point elimination (layman: throws out more points to increase accuracy). Implemented Andersen trigger method to speed up convergence and maximize the average cutoff over simulated paths.
 

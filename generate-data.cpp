@@ -11,6 +11,23 @@
 
 using namespace std;
 
+// Standard normal cdf
+double standard_normal_cdf(double x) {
+    return (1 + erf(x / sqrt(2))) / 2;
+}
+
+// Black-Scholes empirical option price
+// Using this for error comparison
+double empirical_option(double S_0, double T, double sigma, double K, double r, int call_flag) {
+    double d_1 = (log(S_0 / K) + (r + pow(sigma, 2) / 2) * T) / (sigma * sqrt(T));
+    double d_2 = d_1 - sigma * sqrt(T);
+
+    if (call_flag == 1) {
+        return S_0 * standard_normal_cdf(d_1) - K * exp(-r * T) * standard_normal_cdf(d_2);
+    }
+    return K * exp(-r * T) * standard_normal_cdf(-d_2) - S_0 * standard_normal_cdf(-d_1);
+}
+
 // The function below is a modified version of this: https://www.gormanalysis.com/blog/reading-and-writing-csv-files-with-cpp/
 void write_csv(string filename, vector<pair<string, vector<double>>> dataset) {
     // Make a CSV file with one or more columns of double values
@@ -68,10 +85,12 @@ int main() {
     vector<double> strikes_store = {};
     vector<double> original_price_store = {};
     vector<double> optimized_price_store = {};
+    vector<double> empirical_price = {};
     vector<double> basis_store = {};
     vector<double> call_flag_store = {};
     vector<double> original_computation_time = {};
     vector<double> optimized_computation_time = {};
+    
 
     // creating mutex to protect the vectors I push back on
     mutex vector_mutex;
@@ -101,6 +120,14 @@ int main() {
                                                               1);
                     // Stopping computation time and calculating
                     double original_duration = double(clock() - original_begin_time) / CLOCKS_PER_SEC;
+
+                    // Empirical price according to Black-Scholes
+                    double temp_empirical_price = empirical_option(starting_price, 
+                                                                   expiry_time[i], 
+                                                                   volatilities[k], 
+                                                                   call_strikes[l], 
+                                                                   risk_free_rates[j],
+                                                                   1);
                     
 
                     // Setting up multithreading thread ppol
@@ -113,7 +140,8 @@ int main() {
                                          &call_flag_store, &basis_store, &original_price_store, &original_computation_time,
                                          &optimized_price_store, &starting_price, &num_divisions_, &num_sims_, &bases, 
                                          &i, &j, &k, &l, &temp_price, &original_duration, 
-                                         &optimized_computation_time, &vector_mutex](int basis_index) {
+                                         &optimized_computation_time, &vector_mutex, 
+                                         &empirical_price, &temp_empirical_price](int basis_index) {
                         // Synchronization mutex lock
                         lock_guard<mutex> lock(vector_mutex);
 
@@ -124,6 +152,7 @@ int main() {
                         strikes_store.push_back(call_strikes[l]);
                         call_flag_store.push_back(1);
                         basis_store.push_back(basis_index);
+                        empirical_price.push_back(temp_empirical_price);
 
                         original_price_store.push_back(temp_price);
                         original_computation_time.push_back(original_duration);
@@ -176,6 +205,14 @@ int main() {
                     // Stopping computation time and calculating
                     double original_duration = double(clock() - original_begin_time) / CLOCKS_PER_SEC;
 
+                    // Empirical price according to Black-Scholes
+                    double temp_empirical_price = empirical_option(starting_price, 
+                                                                   expiry_time[i], 
+                                                                   volatilities[k], 
+                                                                   call_strikes[l], 
+                                                                   risk_free_rates[j],
+                                                                   0);
+
                     // Setting up multithreading thread ppol
                     vector<thread> thread_pool;
 
@@ -186,7 +223,8 @@ int main() {
                                          &call_flag_store, &basis_store, &original_price_store, &original_computation_time,
                                          &optimized_price_store, &starting_price, &num_divisions_, &num_sims_, &bases, 
                                          &i, &j, &k, &l, &temp_price, &original_duration, 
-                                         &optimized_computation_time, &vector_mutex](int basis_index) {
+                                         &optimized_computation_time, &vector_mutex,
+                                         &empirical_price, &temp_empirical_price](int basis_index) {
                         // Synchronization mutex lock
                         lock_guard<mutex> lock(vector_mutex);
 
@@ -197,6 +235,7 @@ int main() {
                         strikes_store.push_back(put_strikes[l]);
                         call_flag_store.push_back(0);
                         basis_store.push_back(basis_index);
+                        empirical_price.push_back(temp_empirical_price);
 
                         original_price_store.push_back(temp_price);
                         original_computation_time.push_back(original_duration);

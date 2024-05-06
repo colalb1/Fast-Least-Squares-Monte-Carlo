@@ -18,7 +18,13 @@ These optimizations are meant to make the original Longstaff-Schwartz more effic
 
 ### Choosing the Basis
 
-After reviewing literature, choosing a basis other than the standard power basis (that was used in the (original Longstaff-Schwartz paper)[https://people.math.ethz.ch/~hjfurrer/teaching/LongstaffSchwartzAmericanOptionsLeastSquareMonteCarlo.pdf]) was consistent amongst many papers. The three tested bases were the Power, Hermitian, and Laguerre bases. They are defined as follows:
+After reviewing literature, choosing a basis other than the standard power basis (that was used in the (original Longstaff-Schwartz paper)[https://people.math.ethz.ch/~hjfurrer/teaching/LongstaffSchwartzAmericanOptionsLeastSquareMonteCarlo.pdf]) was consistent amongst many papers. The three tested bases were the Power, Hermitian, and Laguerre bases. They are defined as follows (**k** is the number of desired basis functions):
+
+> Power: $\sum_{n = 0}^k x^n$
+> Hermitian: $\sum_{n = 0}^k n!\sum_{m = 0}^{\lceil \frac{n}{2} \rceil} (-1)^{m}(2x)^{n - 2m} * \frac{1}{m!(n - 2m)!}$
+> Laguerre: $$
+
+I will omit further explanation of the bases for brevity; refer to the top of page 6 of (this)[https://jfin-swufe.springeropen.com/articles/10.1186/s40854-015-0019-0] paper for more clarity regarding basis construction.
 
 
 Attempting to implement a method that chooses the best basis between Power, Laguerre, and Hermite based on the greatest $R^2_{adj}$ value via [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper. Might abandon choosing the best basis since the point of this is to be faster; this makes it slower although more accurate. *Edit:* The basis optimizer was not more accurate. It should have been in theory. Changed the basis to an input between the Power, Laguerre, and Hermitian bases since this decreases computation time (which was part of the point of this program anyway).

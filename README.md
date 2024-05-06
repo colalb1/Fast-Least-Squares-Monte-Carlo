@@ -20,9 +20,11 @@ These optimizations are meant to make the original Longstaff-Schwartz more effic
 
 After reviewing literature, choosing a basis other than the standard power basis (that was used in the (original Longstaff-Schwartz paper)[https://people.math.ethz.ch/~hjfurrer/teaching/LongstaffSchwartzAmericanOptionsLeastSquareMonteCarlo.pdf]) was consistent amongst many papers. The three tested bases were the Power, Hermitian, and Laguerre bases. They are defined as follows (**k** is the number of desired basis functions):
 
-Power: $\sum_{n = 0}^k x^n$
-Hermitian: $\sum_{n = 0}^k n!\sum_{m = 0}^{\lceil \frac{n}{2} \rceil} (-1)^{m}(2x)^{n - 2m} * \frac{1}{m!(n - 2m)!}$
-Laguerre: $$
+Power: $$\sum_{n = 0}^k x^n$$
+
+Hermitian: $$\sum_{n = 0}^k n!\sum_{m = 0}^{\lceil \frac{n}{2} \rceil} (-1)^{m}(2x)^{n - 2m} * \frac{1}{m!(n - 2m)!}$$
+
+Laguerre: $$\sum_{n = 0}^k \sum_{m = 0}^n \frac{(-x)^m}{m!} {n \choose m}$$
 
 I will omit further explanation of the bases for brevity; refer to the top of page 6 of (this)[https://jfin-swufe.springeropen.com/articles/10.1186/s40854-015-0019-0] paper for more clarity regarding basis construction.
 

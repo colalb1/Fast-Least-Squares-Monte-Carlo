@@ -6,7 +6,7 @@ Fast implementation of Least-Squares Monte Carlo aka Longstaff Schwartz in C++. 
 
 [fast-lsmc.hpp](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/fast-lsmc.hpp) is the header file for [generate-data.cpp](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/generate-data.cpp) that contains the "function" version of the *fast-lsmc.cpp* method and a modified version of the original method provided by [R.S.](https://rsree.ise.illinois.edu/Prof._R.S._Sreenivas_%28Main%29.html) that can calculate put **and** call option prices.
 
-[generate-data.cpp](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/generate-data.cpp) generates the option prices over an array of parameters and saves it as a .csv file. This has yet to be generated since I have not checked whether the method works. This needs to be optimized **badly**. These prices will be compared to the empirical price to check which is most efficient. This also tracks computation time and memory.
+[generate-data.cpp](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/generate-data.cpp) generates the option prices over an array of parameters and saves it as a .csv file. This has yet to be generated since I have not checked whether the method works. This needs to be optimized **badly**. These prices will be compared to the empirical price to check which is most efficient. This also tracks computation time.
 
 ## Explanation
 

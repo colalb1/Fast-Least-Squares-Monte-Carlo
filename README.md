@@ -42,10 +42,8 @@ $$(K - S_{t}) + (K - S_{t + 1}) * \exp(-r(T - 2t)) > (K - S_{t + 1}) * \exp(-r(T
 
 for puts. Put simply, a path is excluded if the price in the previous step does not reach a certain threshold based on the decay imposed by the risk-free rate.
 
+The Andersen trigger method (otherwise known as LSA) was also added to improve the convergence rate by maximizing the average cutoff over simulated paths. This is essentially adding a constant to one side of the above inequality. More details can be found on page 12 of the paper linked above.
 
-
-
-Implemented Andersen trigger method to speed up convergence and maximize the average cutoff over simulated paths.
 
 ### Policy Iteration
 

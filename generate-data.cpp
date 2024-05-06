@@ -104,21 +104,26 @@ int main() {
                     
 
                     // Setting up multithreading thread ppol
-                    std::vector<std::thread> thread_pool;
+                    vector<thread> thread_pool;
 
 
+                    // lambda functions for each basis computation. This is verbose and NEEDS to be optimized.
+                    auto compute_task = [&expiry_time_store, &expiry_time, &risk_free_rates_store, &risk_free_rates,
+                                         &volatilities_store, &volatilities, &strikes_store, &call_strikes,
+                                         &call_flag_store, &basis_store, &original_price_store, &original_computation_time,
+                                         &optimized_price_store, &starting_price, &num_divisions_, &num_sims_, &bases, 
+                                         &i, &j, &k, &l, &temp_price, &original_duration, 
+                                         &optimized_computation_time, &vector_mutex](int basis_index) {
+                        // Synchronization mutex lock
+                        lock_guard<mutex> lock(vector_mutex);
 
-                    // THERE ARE TOO MANY INPUTS FOR A LAMBDA FUNCTION; USE REGULAR FUNCTION INSTEAD
-                    // lambda functions for each basis computation
-                    void computation_task(int index) {
-                        
                         // Saving data
                         expiry_time_store.push_back(expiry_time[i]);
                         risk_free_rates_store.push_back(risk_free_rates[j]);
                         volatilities_store.push_back(volatilities[k]);
                         strikes_store.push_back(call_strikes[l]);
                         call_flag_store.push_back(1);
-                        basis_store.push_back(m);
+                        basis_store.push_back(basis_index);
 
                         original_price_store.push_back(temp_price);
                         original_computation_time.push_back(original_duration);
@@ -132,19 +137,20 @@ int main() {
                                                                      num_divisions_, 
                                                                      num_sims_, 
                                                                      1, 
-                                                                     bases[index]));
-                        double optimized_duration = double(clock() - optimized_begin_time) / CLOCKS_PER_SEC;
+                                                                     bases[basis_index]));
+                        double optimized_duration = double (clock() - optimized_begin_time) / CLOCKS_PER_SEC;
                         optimized_computation_time.push_back(optimized_duration);
                     };
 
                     // Enqueue computations to thread pool
-                    for (int m = 0; m < sizeof(bases); m++) {
-                        // This guard placement might be wrong; come back to this
+                    for (int m = 0; m < 3; m++) {           // 3 = sizeof(bases)
                         lock_guard<mutex> lock(vector_mutex);
-                        thread_pool.emplace_back(thread(computation_task(m)));
-                    }
 
-                    
+                        // Want to save the function call, but cannot call it straight into the thread due to the
+                        // interaction between the two
+                        function<void()> temp_compute = bind(compute_task, m);
+                        thread_pool.emplace_back(thread(temp_compute));
+                    }
 
                     // Join threads to main thread
                     for (auto& thread:thread_pool) {
@@ -152,34 +158,8 @@ int main() {
                             thread.join();
                         }
                     }
-
-                    // Bases
-                    for (int m = 0; m < sizeof(bases); m++) {
-                        // Saving data
-                        expiry_time_store.push_back(expiry_time[i]);
-                        risk_free_rates_store.push_back(risk_free_rates[j]);
-                        volatilities_store.push_back(volatilities[k]);
-                        strikes_store.push_back(call_strikes[l]);
-                        call_flag_store.push_back(1);
-                        basis_store.push_back(m);
-
-                        original_price_store.push_back(temp_price);
-                        original_computation_time.push_back(original_duration);
-
-                        const clock_t optimized_begin_time = clock();
-                        optimized_price_store.push_back(option_value(expiry_time[i],
-                                                                     risk_free_rates[j], 
-                                                                     volatilities[k], 
-                                                                     starting_price, 
-                                                                     call_strikes[l], 
-                                                                     num_divisions_, 
-                                                                     num_sims_, 
-                                                                     1, 
-                                                                     bases[m]));
-                        double optimized_duration = double(clock() - optimized_begin_time) / CLOCKS_PER_SEC;
-                        optimized_computation_time.push_back(optimized_duration);
-                    }
                 }
+                
                 // Puts
                 for (int l = 0; l < put_strikes.size(); l++) {
                     // Price of the original method since I will be saving it for each basis function
@@ -196,15 +176,27 @@ int main() {
                     // Stopping computation time and calculating
                     double original_duration = double(clock() - original_begin_time) / CLOCKS_PER_SEC;
 
-                    // Bases
-                    for (int m = 0; m < sizeof(bases); m++) {
+                    // Setting up multithreading thread ppol
+                    vector<thread> thread_pool;
+
+
+                    // lambda functions for each basis computation. This is verbose and NEEDS to be optimized.
+                    auto compute_task = [&expiry_time_store, &expiry_time, &risk_free_rates_store, &risk_free_rates,
+                                         &volatilities_store, &volatilities, &strikes_store, &put_strikes,
+                                         &call_flag_store, &basis_store, &original_price_store, &original_computation_time,
+                                         &optimized_price_store, &starting_price, &num_divisions_, &num_sims_, &bases, 
+                                         &i, &j, &k, &l, &temp_price, &original_duration, 
+                                         &optimized_computation_time, &vector_mutex](int basis_index) {
+                        // Synchronization mutex lock
+                        lock_guard<mutex> lock(vector_mutex);
+
                         // Saving data
                         expiry_time_store.push_back(expiry_time[i]);
                         risk_free_rates_store.push_back(risk_free_rates[j]);
                         volatilities_store.push_back(volatilities[k]);
                         strikes_store.push_back(put_strikes[l]);
                         call_flag_store.push_back(0);
-                        basis_store.push_back(m);
+                        basis_store.push_back(basis_index);
 
                         original_price_store.push_back(temp_price);
                         original_computation_time.push_back(original_duration);
@@ -218,9 +210,26 @@ int main() {
                                                                      num_divisions_, 
                                                                      num_sims_, 
                                                                      0, 
-                                                                     bases[m]));
+                                                                     bases[basis_index]));
                         double optimized_duration = double(clock() - optimized_begin_time) / CLOCKS_PER_SEC;
                         optimized_computation_time.push_back(optimized_duration);
+                    };
+
+                    // Enqueue computations to thread pool
+                    for (int m = 0; m < 3; m++) {           // 3 = sizeof(bases)
+                        lock_guard<mutex> lock(vector_mutex);
+
+                        // Want to save the function call, but cannot call it straight into the thread due to the
+                        // interaction between the two
+                        function<void()> temp_compute = bind(compute_task, m);
+                        thread_pool.emplace_back(thread(temp_compute));
+                    }
+
+                    // Join threads to main thread
+                    for (auto& thread:thread_pool) {
+                        if (thread.joinable()) {
+                            thread.join();
+                        }
                     }
                 } 
             }

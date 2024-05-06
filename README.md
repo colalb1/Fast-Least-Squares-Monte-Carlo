@@ -20,22 +20,30 @@ These optimizations are meant to make the original Longstaff-Schwartz more effic
 
 After reviewing literature, choosing a basis other than the standard power basis (that was used in the (original Longstaff-Schwartz paper)[https://people.math.ethz.ch/~hjfurrer/teaching/LongstaffSchwartzAmericanOptionsLeastSquareMonteCarlo.pdf]) was consistent amongst many papers. The three tested bases were the Power, Hermitian, and Laguerre bases. They are defined as follows (**k** is the number of desired basis functions):
 
-Power: $\sum_{n = 0}^k x^n$
+**Power:** $$\sum_{n = 0}^k x^n$$
 
-Hermitian: $\sum_{n = 0}^k n!\sum_{m = 0}^{\lfloor \frac{n}{2} \rfloor} (-1)^{m}(2x)^{n - 2m} * \frac{1}{m!(n - 2m)!}$
+**Hermitian:** $$\sum_{n = 0}^k n!\sum_{m = 0}^{\lfloor \frac{n}{2} \rfloor} (-1)^{m}(2x)^{n - 2m} * \frac{1}{m!(n - 2m)!}$$
 
-Laguerre: $\sum_{n = 0}^k \sum_{m = 0}^n \frac{(-x)^m}{m!} {n \choose m}$
+**Laguerre:** $$\sum_{n = 0}^k \sum_{m = 0}^n \frac{(-x)^m}{m!} {n \choose m}$$
 
 I will omit further explanation of the bases for brevity; refer to the top of page 6 of (this)[https://jfin-swufe.springeropen.com/articles/10.1186/s40854-015-0019-0] paper for more clarity regarding basis construction.
 
+I implemented a method that programmatically chose the optimal basis based on which had the greatest $R^2_{adj}$ value via [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper. I abandoned this idea because there is no way (that I know of) around computing the regression three times for each iteration, and this significantly increased computation time. This works well in theory, but having nearly three times the computation time for (even) a significant accuracy gain is not worth it.
 
-Attempting to implement a method that chooses the best basis between Power, Laguerre, and Hermite based on the greatest $R^2_{adj}$ value via [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper. Might abandon choosing the best basis since the point of this is to be faster; this makes it slower although more accurate. *Edit:* The basis optimizer was not more accurate. It should have been in theory. Changed the basis to an input between the Power, Laguerre, and Hermitian bases since this decreases computation time (which was part of the point of this program anyway).
+### Path Conditions
 
 Adapted path conditions to non-zero cash flow to increase accuracy. This provides a greater lower bound for sub-optimal point elimination (layman: throws out more points to increase accuracy). Implemented Andersen trigger method to speed up convergence and maximize the average cutoff over simulated paths.
 
+### Policy Iteration
+
 Restricted policy iteration by stratifying each potential path by its value and used continuation of previous regression.
 
+### Stratification and Double-Regression Enhancement
+
 Stratification and double-regression enhancement from [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) cannot be done since each region is only one timestep long since this is an American option as opposed to a Bermudan option. This means I must implement other optimizations. Batched iteration also prevents this since I need access to all of the paths.
+
+
+### Brownian Bridge 
 
 Currently implementing Brownian Bridge method to reduce space requirements since only one time iteration needs to be stored at a time instead of the whole simulation. I will write a more technical explanation of this after I finish the project, but for now reference [this](https://en.wikipedia.org/wiki/Brownian_bridge) for an explanation. Simply put, I choose the last price first then walk backward toward the original price. I reckon this is not as "random" but achieves a similar outcome with much less memory since I only need to keep track of the current simulation instead of all the simulation timesteps.
 

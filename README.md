@@ -18,7 +18,7 @@ These optimizations are meant to make the original Longstaff-Schwartz more effic
 
 ### Choosing the Basis
 
-After reviewing literature, choosing a basis other than the standard power basis (that was used in the (original Longstaff-Schwartz paper)[https://people.math.ethz.ch/~hjfurrer/teaching/LongstaffSchwartzAmericanOptionsLeastSquareMonteCarlo.pdf]) was consistent amongst many papers. The three tested bases were the Power, Hermitian, and Laguerre bases. They are defined as follows (**k** is the number of desired basis functions):
+After reviewing literature, choosing a basis other than the standard power basis (that was used in the [original Longstaff-Schwartz paper](https://people.math.ethz.ch/~hjfurrer/teaching/LongstaffSchwartzAmericanOptionsLeastSquareMonteCarlo.pdf)) was consistent amongst many papers. The three tested bases were the Power, Hermitian, and Laguerre bases. They are defined as follows (**k** is the number of desired basis functions):
 
 **Power:** $$\sum_{n = 0}^k x^n$$
 
@@ -26,7 +26,7 @@ After reviewing literature, choosing a basis other than the standard power basis
 
 **Laguerre:** $$\sum_{n = 0}^k \sum_{m = 0}^n \frac{(-x)^m}{m!} {n \choose m}$$
 
-I will omit further explanation of the bases for brevity; refer to the top of page 6 of (this)[https://jfin-swufe.springeropen.com/articles/10.1186/s40854-015-0019-0] paper for more clarity regarding basis construction.
+I will omit further explanation of the bases for brevity; refer to the top of page 6 of [this](https://jfin-swufe.springeropen.com/articles/10.1186/s40854-015-0019-0) paper for more clarity regarding basis construction.
 
 I implemented a method that programmatically chose the optimal basis based on which had the greatest $R^2_{adj}$ value via [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper. I abandoned this idea because there is no way (that I know of) around computing the regression three times for each iteration, and this significantly increased computation time. This works well in theory, but having nearly three times the computation time for (even) a significant accuracy gain is not worth it.
 

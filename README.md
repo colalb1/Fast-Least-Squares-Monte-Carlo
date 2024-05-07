@@ -56,7 +56,7 @@ where $S(0)$ is the starting price, and $X(T) = (r - \frac{\sigma ^ 2}{2}) + \si
 
 For each previous timestep, walk backward using the following equation:
 
-$$X(t_i) = \frac{t_{i + 1}}{t_i}X(t_{i + 1}} + \sigma\sqrt{\frac{t_i}{t_{i + 1}} * \Delta t} * Z$$
+$$X(t_i) = \frac{t_{i + 1}}{t_i}X(t_{i + 1}) + \sigma\sqrt{\frac{t_i}{t_{i + 1}} * \Delta t} * Z$$
 
 One may observe that this achieves the starting value at $t = 0$. Therefore, the construction of the Brownian Bridge is complete.
 

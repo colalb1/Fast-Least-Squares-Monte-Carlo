@@ -48,16 +48,19 @@ The Andersen trigger method (otherwise known as LSA) was also added to improve t
 
 A Brownian Bridge was simulated instead of a Brownian Motion as a Brownian Bridge requires only the last iteration of movement to be stored whereas Brownian Motion requires storage of the whole walk. This saves memory and decreases computation time since a greater portion of the cached information resides in the CPU. A Brownian Bridge is essentially when the final value of a walk is chosen first, then a pseudo-random iteration process walks the process back to some starting value (basically a Brownian Motion in reverse). I will now present the mathematical formulation of this concept.
 
-Suppose $Z\sim N(0, 1)$ is a randomly drawn value from a standard normal distribution. Initialize the final value of the walk such that 
+Suppose $Z\sim N(0, 1)$ is a random sample from a standard normal distribution. Initialize the final value of the walk such that 
 
 $$S(T) = S(0) * \exp(X(T))$$
 
-where $S(0)$ is the starting price, and $X(T) = (r - \frac{\sigma ^ 2}{2}) + \sigma\sqrt{T}W(T)$ given $W(T)\sim N(0, T)$.
+where $S(0)$ is the starting price, and $X(T) = (r - \frac{\sigma ^ 2}{2}) + \sigma\sqrt{T} * W(T)$ given $W(T)\sim N(0, T)$.
 
+For each previous timestep, walk backward using the following equation:
 
+$$X(t_i) = \frac{t_{i + 1}}{t_i}X(t_{i + 1}} + \sigma\sqrt{\frac{t_i}{t_{i + 1}} * \Delta t} * Z$$
 
+One may observe that this achieves the starting value at $t = 0$. Therefore, the construction of the Brownian Bridge is complete.
 
-Currently implementing Brownian Bridge method to reduce space requirements since only one time iteration needs to be stored at a time instead of the whole simulation. I will write a more technical explanation of this after I finish the project, but for now reference [this](https://en.wikipedia.org/wiki/Brownian_bridge) for an explanation. Simply put, I choose the last price first then walk backward toward the original price. I reckon this is not as "random" but achieves a similar outcome with much less memory since I only need to keep track of the current simulation instead of all the simulation timesteps.
+This formulation was taken from [this](http://www.diva-portal.org/smash/get/diva2:818128/FULLTEXT01.pdf) article.
 
 
 ### Stratification and Double-Regression Enhancement

@@ -28,7 +28,7 @@ After reviewing literature, choosing a basis other than the standard power basis
 
 I will omit further explanation of the bases for brevity; refer to the top of page 6 of [this](https://jfin-swufe.springeropen.com/articles/10.1186/s40854-015-0019-0) paper for more clarity regarding basis construction.
 
-I implemented a method that programmatically chose the optimal basis based on which had the greatest $R^2_{adj}$ value via [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper. I abandoned this idea because there is no way (that I know of) around computing the regression three times for each iteration, and this significantly increased computation time. This works well in theory, but having nearly three times the computation time for (even) a significant accuracy gain is not worth it.
+I implemented a method that programmatically chose the optimal basis based on which had the greatest $R^2_{adj}$ value via [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper. I abandoned this idea because there is no way (that I know of) around computing the regression three times for each iteration, and this significantly increased computation time. This works well in theory, but having nearly three times the computation time for a small accuracy gain is not worth it.
 
 ### Path Conditions
 
@@ -44,6 +44,10 @@ for puts. Put simply, a path is excluded if the price in the previous step does 
 
 The Andersen trigger method (otherwise known as LSA) was also added to improve the convergence rate by maximizing the average cutoff over simulated paths. This is essentially adding a constant to one side of the above inequality. More details can be found on page 12 of the paper linked above.
 
+### Brownian Bridge 
+
+Currently implementing Brownian Bridge method to reduce space requirements since only one time iteration needs to be stored at a time instead of the whole simulation. I will write a more technical explanation of this after I finish the project, but for now reference [this](https://en.wikipedia.org/wiki/Brownian_bridge) for an explanation. Simply put, I choose the last price first then walk backward toward the original price. I reckon this is not as "random" but achieves a similar outcome with much less memory since I only need to keep track of the current simulation instead of all the simulation timesteps.
+
 
 ### Policy Iteration
 
@@ -51,12 +55,12 @@ Restricted policy iteration by stratifying each potential path by its value and 
 
 ### Stratification and Double-Regression Enhancement
 
-Stratification and double-regression enhancement from [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) cannot be done since each region is only one timestep long since this is an American option as opposed to a Bermudan option. This means I must implement other optimizations. Batched iteration also prevents this since I need access to all of the paths.
+Another optimization for which an attempt at implementation was made was the stratification and a double-regression enhancement (from [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper). This achieves essentially the same outcome as the **Path Conditions** as it tightens the paths chosen for regression; this is achieved by comparing the regression values of all viable paths and paths for which "far" in or out-of-the-money are discarded. The regression uses the paths between strike times for prediction. The issue for American options is that there is no "path" between the exercise times since every time is an expiration time. Thus, I decided that the data was too biased toward the most recent iterations to predict the next price accurately. 
 
+A potential workaround is to use the $k$ previous iterations where $k$ is some user-selected number of iterations. I did not implement this as I attempted to keep this method as mathematically sound as possible.
 
-### Brownian Bridge 
+Another issue is that this requires access to **all** paths used for the calculation. [Loop tiling](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) was used to optimize runtime for the path generation so paths were generated in batches of around $200$, and accessing all paths was not possible.
 
-Currently implementing Brownian Bridge method to reduce space requirements since only one time iteration needs to be stored at a time instead of the whole simulation. I will write a more technical explanation of this after I finish the project, but for now reference [this](https://en.wikipedia.org/wiki/Brownian_bridge) for an explanation. Simply put, I choose the last price first then walk backward toward the original price. I reckon this is not as "random" but achieves a similar outcome with much less memory since I only need to keep track of the current simulation instead of all the simulation timesteps.
 
 ## Conclusion
 

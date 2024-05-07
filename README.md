@@ -46,12 +46,19 @@ The Andersen trigger method (otherwise known as LSA) was also added to improve t
 
 ### Brownian Bridge 
 
+A Brownian Bridge was simulated instead of a Brownian Motion as a Brownian Bridge requires only the last iteration of movement to be stored whereas Brownian Motion requires storage of the whole walk. This saves memory and decreases computation time since a greater portion of the cached information resides in the CPU. A Brownian Bridge is essentially when the final value of a walk is chosen first, then a pseudo-random iteration process walks the process back to some starting value (basically a Brownian Motion in reverse). I will now present the mathematical formulation of this concept.
+
+Suppose $Z\sim N(0, 1)$ is a randomly drawn value from a standard normal distribution. Initialize the final value of the walk such that 
+
+$$S(T) = S(0) * \exp(X(T))$$
+
+where $S(0)$ is the starting price, and $X(T) = (r - \frac{\sigma ^ 2}{2}) + \sigma\sqrt{T}W(T)$ given $W(T)\sim N(0, T)$.
+
+
+
+
 Currently implementing Brownian Bridge method to reduce space requirements since only one time iteration needs to be stored at a time instead of the whole simulation. I will write a more technical explanation of this after I finish the project, but for now reference [this](https://en.wikipedia.org/wiki/Brownian_bridge) for an explanation. Simply put, I choose the last price first then walk backward toward the original price. I reckon this is not as "random" but achieves a similar outcome with much less memory since I only need to keep track of the current simulation instead of all the simulation timesteps.
 
-
-### Policy Iteration
-
-Restricted policy iteration by stratifying each potential path by its value and used continuation of previous regression.
 
 ### Stratification and Double-Regression Enhancement
 

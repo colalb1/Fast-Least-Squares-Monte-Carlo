@@ -55,11 +55,11 @@ Restricted policy iteration by stratifying each potential path by its value and 
 
 ### Stratification and Double-Regression Enhancement
 
-Another optimization for which an attempt at implementation was made was the stratification and a double-regression enhancement (from [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper). This achieves essentially the same outcome as the **Path Conditions** as it tightens the paths chosen for regression; this is achieved by comparing the regression values of all viable paths and paths for which "far" in or out-of-the-money are discarded. The regression uses the paths between strike times for prediction. The issue for American options is that there is no "path" between the exercise times since every time is an expiration time. Thus, I decided that the data was too biased toward the most recent iterations to predict the next price accurately. 
+Another attempted optimization was the stratification and a double-regression enhancement (from [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper). This achieves essentially the same outcome as the **Path Conditions** as it tightens the bounds for paths chosen for regression; this is achieved by comparing the regression values of all viable paths and paths for which "far" in or out-of-the-money are discarded. The regression uses the paths between strike times for prediction. The issue for American options is that there is no "path" between the exercise times since every time is an expiration time. Thus, I decided that the data was too biased toward the most recent iterations to predict the next price accurately. 
 
 A potential workaround is to use the $k$ previous iterations where $k$ is some user-selected number of iterations. I did not implement this as I attempted to keep this method as mathematically sound as possible.
 
-Another issue is that this requires access to **all** paths used for the calculation. [Loop tiling](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) was used to optimize runtime for the path generation so paths were generated in batches of around $200$, and accessing all paths was not possible.
+Another issue is that this stratification requires access to **all** paths used for the calculation. [Loop tiling](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) was used to optimize runtime for the path generation so paths were generated in batches of around $200$, and accessing all paths was not possible.
 
 
 ## Conclusion

@@ -77,4 +77,4 @@ Another issue is that this stratification requires access to **all** paths used 
 Add metrics on performance and discuss improvements in general.
 
 ## My Review of C++
-Fast. Really slow to debug. This was my first time writing C++ so if there are any glaring errors or easy optimizations that I missed, let me know.
+Fast. Really slow to debug. This was my first time writing C++ so if there are any glaring errors or easy optimizations that I missed, let me know. Currently encountering excruciating issues with detecting the Eigen folder on my PC and is SIGNIFICANTLY pushing back development.

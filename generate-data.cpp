@@ -270,7 +270,12 @@ int main() {
                             thread.join();
                         }
                     }
-                } 
+                }
+                cout << "Finished:" << endl;
+                cout << volatilities[k] << endl;
+                cout << risk_free_rates[j] << endl;
+                cout << expiry_time[i] << endl;
+                cout << endl;
             }
         }
     }

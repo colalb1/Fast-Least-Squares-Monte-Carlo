@@ -12,6 +12,8 @@ The original Longstaff-Schwartz implementation was provided by [R.S.](https://rs
 
 [*generate-data.cpp*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/generate-data.cpp) generates the option prices over an array of parameters and saves it as a .csv file. The estimated prices and computation times will be used to compare the efficiency of each method.
 
+[*option_pricing.csv*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/option_pricing.csv) contains the data generated from the file listed above. This will be used for data analysis regarding accuracy and computation time to draw general conclusions and those regarding the bases.
+
 ## Optimizations
 
 These optimizations are meant to make the original Longstaff-Schwartz more efficient. The following contains a short explanation of each improvement.

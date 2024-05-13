@@ -32,7 +32,7 @@ After reviewing literature, choosing a basis other than the standard power basis
 \left\{n!\sum_{m = 0}^{\lfloor \frac{n}{2} \rfloor} (-1)^{m}(2x)^{n - 2m} * \frac{1}{m!(n - 2m)!}\right\}_{n = 0}^k
 ```
 
-**Laguerre:** $$`\{\sum_{m = 0}^n \frac{(-x)^m}{m!} {n \choose m}\}`_{n = 0}^k$$
+**Laguerre:**
 
 ```math
 \left\{\sum_{m = 0}^n \frac{(-x)^m}{m!} {n \choose m}\right\}_{n = 0}^k

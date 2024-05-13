@@ -14,6 +14,8 @@ The original Longstaff-Schwartz implementation was provided by [R.S.](https://rs
 
 [*option_pricing.csv*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/option_pricing.csv) contains the data generated from the file listed above. This will be used for data analysis regarding accuracy and computation time to draw general conclusions and those regarding the bases.
 
+[*optimization_analysis.ipynb*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/optimization_analysis.ipynb) contains data analysis comparing the accuracy of the original and option pricing methods.
+
 ## Optimizations
 
 These optimizations are meant to make the original Longstaff-Schwartz more efficient. The following contains a short explanation of each improvement.

@@ -20,11 +20,23 @@ These optimizations are meant to make the original Longstaff-Schwartz more effic
 
 After reviewing literature, choosing a basis other than the standard power basis (that was used in the [original Longstaff-Schwartz paper](https://people.math.ethz.ch/~hjfurrer/teaching/LongstaffSchwartzAmericanOptionsLeastSquareMonteCarlo.pdf)) was consistent amongst many papers. The three tested bases were the Power, Hermitian, and Laguerre bases. They are defined as follows (**k** is the number of desired basis functions):
 
-**Power:** $$`\{x^n\}`_{n = 0}^{k}$$
+**Power:** 
 
-**Hermitian:** $$`\{n!\sum_{m = 0}^{\lfloor \frac{n}{2} \rfloor} (-1)^{m}(2x)^{n - 2m} * \frac{1}{m!(n - 2m)!}\}`_{n = 0}^k$$
+```math
+\left\{x^n\right\}_{n = 0}^{k}
+```
+
+**Hermitian:**
+
+```math
+\left\{n!\sum_{m = 0}^{\lfloor \frac{n}{2} \rfloor} (-1)^{m}(2x)^{n - 2m} * \frac{1}{m!(n - 2m)!}\right\}_{n = 0}^k
+```
 
 **Laguerre:** $$`\{\sum_{m = 0}^n \frac{(-x)^m}{m!} {n \choose m}\}`_{n = 0}^k$$
+
+```math
+\left\{\sum_{m = 0}^n \frac{(-x)^m}{m!} {n \choose m}\right\}_{n = 0}^k
+```
 
 I will omit further explanation of the bases for brevity; refer to the top of page 6 of [this](https://jfin-swufe.springeropen.com/articles/10.1186/s40854-015-0019-0) paper for more clarity regarding basis construction.
 

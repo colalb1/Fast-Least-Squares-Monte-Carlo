@@ -100,4 +100,4 @@ I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission
 Add metrics on performance and discuss improvements in general.
 
 ## My Review of C++
-Fast. Really slow to debug. This was my first time writing C++ so if there are any glaring errors or easy optimizations that I missed, let me know. Currently encountering excruciating issues with detecting the Eigen folder on my PC and is SIGNIFICANTLY pushing back development.
+Fast. Really slow to debug. This was my first time writing C++ so if there are any glaring errors or easy optimizations that I missed, let me know.

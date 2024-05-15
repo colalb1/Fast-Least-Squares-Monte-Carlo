@@ -85,11 +85,11 @@ Another attempted optimization was the stratification and a double-regression en
 
 A potential workaround is to use the $k$ previous iterations where $k$ is some user-selected number of iterations. I did not implement this as I attempted to keep this method as mathematically sound as possible.
 
-Another issue is that this stratification requires access to **all** paths used for the calculation. [Loop tiling](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) was used to optimize runtime for the path generation so paths were generated in batches of around $200$, and accessing all paths was not possible.
+Another issue is that this stratification requires access to **all** paths used for the calculation. [Loop blocking](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) was used to optimize runtime for the path generation so paths were generated in batches of around $200$, and accessing all paths was not possible.
 
 ### Loop Optimizations
 
-[Loop blocking](https://www.codee.com/catalog/glossary-loop-tiling/) (or tiling) is implemented when iterating over the total number of desired simulations by dividing the number of total simulations by 200 to optimize cache allocation and hence speed. This is faster than a standard **for** loop since the blocks are small enough to be stored in CPU memory instead of DRAM, decreasing the "distance" the information has to travel to be accessed. The optimal block size is machine-dependent so I encourage any future users to test with their machine to find the most optimal block size. 
+[Loop blocking](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) (or tiling) is implemented when iterating over the total number of desired simulations by dividing the number of total simulations by 200 to optimize cache allocation and hence speed. This is faster than a standard **for** loop since the blocks are small enough to be stored in CPU memory instead of DRAM, decreasing the "distance" the information has to travel to be accessed. The optimal block size is machine-dependent so I encourage any future users to test with their machine to find the most optimal block size. 
 
 I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission_and_fusion) for which independent computations are put into the same **for** loop to save computation time. This is something I already do, but it's good to know my code is more efficient for that reason.
 

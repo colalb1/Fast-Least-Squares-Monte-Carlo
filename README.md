@@ -93,7 +93,7 @@ Another issue is that this stratification requires access to **all** paths used 
 
 [Loop interchanges](https://en.wikipedia.org/wiki/Loop_interchange) were tested in the [*generate-data.cpp*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/generate-data.cpp) file, but improvements were negligible. I assume this is because the order of the vectors being iterated over is in the single digits so changing them around would not have a great effect. The concept of "loop interchange" boils down to making the outermost **for** loop the loop with the greatest number of iterations/data and assigning the inner loop to that with fewer iterations/data since the fewer iterations will allow the data to stay in the CPU cache instead of moving to DRAM. This achieves a similar outcome to *loop blocking*. An example of this is the multiplication of a tall-and-skinny matrix $A$ by a square matrix $B$ as one desires the outer loop to iterate over $A$'s rows and the inner loop to iterate over $A$'s columns to keep the data in the CPU cache.
 
-I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission_and_fusion) for which independent computations are put into the same **for** loop to save computation time. This is something I already do, but it's good to know my code is more efficient for that reason.
+I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission_and_fusion) for which independent computations are put into the same **for** loop to save computation time. This is something I already do, but it's good to know the code is more efficient this way.
 
 ## Conclusion
 

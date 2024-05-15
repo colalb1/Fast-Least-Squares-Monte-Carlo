@@ -87,6 +87,10 @@ A potential workaround is to use the $k$ previous iterations where $k$ is some u
 
 Another issue is that this stratification requires access to **all** paths used for the calculation. [Loop tiling](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) was used to optimize runtime for the path generation so paths were generated in batches of around $200$, and accessing all paths was not possible.
 
+### Loop Blocking and Fusion
+
+Loop blocking is done by dividing the number of total simulations by 200 to optimize cache allocation for option_value function. The optimal block size is machine-dependent. FIND PLACES TO INCLUDE LOOP FISSION/FUSION.
+
 
 ## Conclusion
 

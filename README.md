@@ -89,7 +89,7 @@ Another issue is that this stratification requires access to **all** paths used 
 
 ### Loop Blocking and Fusion
 
-Loop blocking is done by dividing the number of total simulations by 200 to optimize cache allocation for option_value function. The optimal block size is machine-dependent. FIND PLACES TO INCLUDE LOOP FISSION/FUSION.
+Loop blocking is done by dividing the number of total simulations by 200 to optimize cache allocation for option_value function. The optimal block size is machine-dependent. FIND PLACES TO INCLUDE LOOP FISSION/FUSION. Loop interchanges with data generation.
 
 
 ## Conclusion

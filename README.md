@@ -91,10 +91,9 @@ Another issue is that this stratification requires access to **all** paths used 
 
 [Loop blocking](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) (or tiling) is implemented when iterating over the total number of desired simulations by dividing the number of total simulations by 200 to optimize cache allocation and hence speed. This is faster than a standard **for** loop since the blocks are small enough to be stored in CPU memory instead of DRAM, decreasing the "distance" the information has to travel to be accessed. The optimal block size is machine-dependent so I encourage any future users to test with their machine to find the most optimal block size. 
 
-I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission_and_fusion) for which independent computations are put into the same **for** loop to save computation time. This is something I already do, but it's good to know my code is more efficient for that reason.
-
 [Loop interchanges](https://en.wikipedia.org/wiki/Loop_interchange) were tested in the [*generate-data.cpp*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/generate-data.cpp) file, but improvements were negligible. I assume this is because the order of the vectors being iterated over is in the single digits so changing them around would not have a great effect. The concept of "loop interchange" boils down to making the outermost **for** loop the loop with the greatest amount of iterations/data and assigning the inner loop to that with fewer iterations/data since the fewer iterations will allow the data to stay in the CPU cache instead of moving to DRAM. This achieves a similar goal to *loop blocking*. An example of this is the multiplication of a tall-and-skinny matrix $A$ by a square matrix $B$ as the order for which one desires the outer loop to iterate over $A$'s rows and the inner loop to iterate over $A$'s columns.
 
+I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission_and_fusion) for which independent computations are put into the same **for** loop to save computation time. This is something I already do, but it's good to know my code is more efficient for that reason.
 
 ## Conclusion
 

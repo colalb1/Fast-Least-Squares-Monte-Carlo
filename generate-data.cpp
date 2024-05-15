@@ -290,6 +290,8 @@ int main() {
     output.push_back({"Optimized Method Price", optimized_price_store});
     output.push_back({"Basis", basis_store});
     output.push_back({"Call Flag", call_flag_store});
+    output.push_back({"Original Computation Time", original_computation_time});
+    output.push_back({"Optimized Computation Time", optimized_computation_time});
 
     write_csv("option_pricing.csv", output);
     return 0;

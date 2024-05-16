@@ -1,9 +1,9 @@
 # Fast Least Squares Monte Carlo
-Fast implementation of Least-Squares Monte Carlo (Longstaff-Schwartz) for American options in C++. This project is in development; the code and description are incomplete.
+Fast implementation of Least-Squares Monte Carlo (Longstaff-Schwartz) for American options in C++. This project is in development; the code and description are incomplete. This project aims to optimize the original Longstaff-Schwartz method to greatly increase accuracy and decrease computation time given equivalent computational parameters (number of grid divisions) via mathematical and programmatic improvements.
 
 ## Precursor
 
-The original Longstaff-Schwartz implementation was provided by [R.S.](https://rsree.ise.illinois.edu/Prof._R.S._Sreenivas_%28Main%29.html) of the UIUC Industrial Engineering Department. The genesis of augmenting this method came from discussing option pricing using Monte Carlo methods after class.
+The original Longstaff-Schwartz implementation was provided by [R.S.](https://rsree.ise.illinois.edu/Prof._R.S._Sreenivas_%28Main%29.html) of the UIUC Industrial Engineering Department. The idea to augment this method came from discussing option pricing using Monte Carlo methods after class.
 
 ## Files
 [*fast-lsmc.cpp*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/fast-lsmc.cpp) contains the optimized methods for Longstaff-Schwartz and serves as a calculator.
@@ -97,11 +97,11 @@ I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission
 
 ## Results
 
-temp
+ADD METRICS AND PLOTS. In short, the optimized version that I wrote is nearly always more accurate than the original version. Regarding which basis is most accurate, it depends on the input parameters (ADD INFO TO BACK UP). In practice, one would likely choose the Power basis as it is easy to implement and provides marginally different results than the Hermitian and Laguerre bases. If you have an aching desire to know exactly which scenarios the Hermitian and Laguerre bases are more accurate, I encourage you to copy this code and proceed with rigorous testing.
 
 ## Conclusion
 
 Add metrics on performance and discuss improvements in general.
 
 ## My Review of C++
-Fast. Really slow to debug. This was my first time writing C++ so if there are any glaring errors or easy optimizations that I missed, let me know.
+Fast. Really slow to debug.

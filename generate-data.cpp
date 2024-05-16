@@ -130,7 +130,7 @@ int main() {
                                                                    1);
                     
 
-                    // Setting up multithreading thread ppol
+                    // Setting up multithreading thread pool
                     vector<thread> thread_pool;
 
 

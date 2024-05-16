@@ -315,8 +315,6 @@ double option_value_original(double expiration_time, double risk_free_rate, doub
 				for (int j = 0; j < no_of_trials; j++) {
 					if (max(0.0, strike_price - asset_price[j][i]) > 0 && call_flag == 0) {
 						no_of_variables++;
-						// cout << "kinda before1" << endl;
-						// cout << no_of_variables << endl;
 						independent_variables(no_of_variables, 0) = asset_price[j][i];
 						dependent_variables(no_of_variables, 0) = value[j]/R;
 					} else if (max(0.0, asset_price[j][i] - strike_price) > 0 && call_flag == 1) {

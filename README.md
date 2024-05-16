@@ -95,6 +95,10 @@ Another issue is that this stratification requires access to **all** paths used 
 
 I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission_and_fusion) for which independent computations are put into the same **for** loop to save computation time. This is something I already do, but it's good to know the code is more efficient this way.
 
+## Results
+
+temp
+
 ## Conclusion
 
 Add metrics on performance and discuss improvements in general.

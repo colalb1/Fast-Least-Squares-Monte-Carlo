@@ -20,6 +20,8 @@ The original Longstaff-Schwartz implementation was provided by [R.S.](https://rs
 
 These optimizations are meant to make the original Longstaff-Schwartz more efficient. The following contains a short explanation of each improvement.
 
+The [eigen 3.4.0](https://eigen.tuxfamily.org/index.php?title=Main_Page) C++ package was used for all linear algebra needs.
+
 ### Choosing the Basis
 
 After reviewing literature, choosing a basis other than the standard power basis (that was used in the [original Longstaff-Schwartz paper](https://people.math.ethz.ch/~hjfurrer/teaching/LongstaffSchwartzAmericanOptionsLeastSquareMonteCarlo.pdf)) was consistent amongst many papers. The three tested bases were the Power, Hermitian, and Laguerre bases. They are defined as follows (**k** is the number of desired basis functions):
@@ -94,6 +96,9 @@ Another issue is that this stratification requires access to **all** paths used 
 [Loop interchanges](https://en.wikipedia.org/wiki/Loop_interchange) were tested in the [*generate-data.cpp*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/generate-data.cpp) file, but improvements were negligible. I assume this is because the order of the vectors being iterated over is in the single digits so changing them around would not have a great effect. The concept of "loop interchange" boils down to making the outermost **for** loop the loop with the greatest number of iterations/data and assigning the inner loop to that with fewer iterations/data since the fewer iterations will allow the data to stay in the CPU cache instead of moving to DRAM. This achieves a similar outcome to *loop blocking*. An example of this is the multiplication of a tall-and-skinny matrix $A$ by a square matrix $B$ as one desires the outer loop to iterate over $A$'s rows and the inner loop to iterate over $A$'s columns to keep the data in the CPU cache.
 
 I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission_and_fusion) for which independent computations are put into the same **for** loop to save computation time. This is something I already do, but it's good to know the code is more efficient this way.
+
+***************PARELLELIZATION*************** talk about thread pooling, mutex locking, computation time decrease
+
 
 ## Results
 

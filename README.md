@@ -18,7 +18,7 @@ The original Longstaff-Schwartz implementation was provided by [R.S.](https://rs
 
 ## Optimizations
 
-These optimizations are meant to make the original Longstaff-Schwartz more efficient. The following contains a short explanation of each improvement.
+These optimizations are meant to make the original Longstaff-Schwartz method faster and more accurate. The following contains a short explanation of each improvement.
 
 The [eigen 3.4.0](https://eigen.tuxfamily.org/index.php?title=Main_Page) C++ package was used for all linear algebra needs.
 

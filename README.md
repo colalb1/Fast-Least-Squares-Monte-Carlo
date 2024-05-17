@@ -1,5 +1,5 @@
 # Fast Least Squares Monte Carlo
-Fast implementation of Least-Squares Monte Carlo (Longstaff-Schwartz) for American options in C++. This project is in development; the code and description are incomplete. This project aims to optimize the original Longstaff-Schwartz method to greatly increase accuracy and decrease computation time given equivalent computational parameters (number of grid divisions) via mathematical and programmatic improvements.
+Fast and more accurate implementation of Least-Squares Monte Carlo (Longstaff-Schwartz) for American options in C++. This project aims to optimize the original Longstaff-Schwartz method to greatly increase accuracy and decrease computation time given equivalent computational parameters (number of grid divisions) via mathematical and programmatic improvements.
 
 ## Precursor
 
@@ -18,7 +18,7 @@ The original Longstaff-Schwartz implementation was provided by [R.S.](https://rs
 
 ## Optimizations
 
-These optimizations are meant to make the original Longstaff-Schwartz more efficient. The following contains a short explanation of each improvement.
+These optimizations are meant to make the original Longstaff-Schwartz method faster and more accurate. The following contains a short explanation of each improvement.
 
 The [eigen 3.4.0](https://eigen.tuxfamily.org/index.php?title=Main_Page) C++ package was used for all linear algebra needs.
 
@@ -54,7 +54,7 @@ In Least-Squares Monte Carlo methods for options pricing, the condition $(S - K)
 
 $$(S_{t} - K) + (S_{t + 1} - K) * \exp(-r(T - 2t)) < (S_{t + 1} - K) * \exp(-r(T - 2(t + 1)))$$
 
-for calls and
+for calls, and
 
 $$(K - S_{t}) + (K - S_{t + 1}) * \exp(-r(T - 2t)) > (K - S_{t + 1}) * \exp(-r(T - 2(t + 1)))$$
 
@@ -64,49 +64,53 @@ The Andersen trigger method (otherwise known as LSA) was also added to improve t
 
 ### Brownian Bridge 
 
-A Brownian Bridge was simulated instead of a Brownian Motion as a Brownian Bridge requires only the last iteration of movement to be stored whereas Brownian Motion requires storage of the whole walk. This saves memory and decreases computation time since a greater portion of the cached information resides in the CPU. A Brownian Bridge is essentially when the final value of a walk is chosen first, then a pseudo-random iteration process walks the process back to some starting value (basically a Brownian Motion in reverse). I will now present the mathematical formulation of this concept.
+A Brownian Bridge was simulated instead of a Brownian Motion as a Brownian Bridge requires only the last iteration of movement to be stored whereas Brownian Motion requires storage of the whole walk. This saves memory and decreases computation time since a greater portion of the cached information resides in the CPU instead of DRAM. A Brownian Bridge is essentially when the final value of a walk is chosen first, then a pseudo-random iteration process walks the process back to some starting value (basically a Brownian Motion in reverse). I will now present the mathematical formulation of this concept.
 
-Suppose $Z\sim N(0, 1)$ is a random sample from a standard normal distribution. Initialize the final value of the walk such that 
+Suppose $Z\sim N(0, 1)$. Initialize the final value of the walk such that 
 
 $$S(T) = S(0) * \exp(X(T))$$
 
 where $S(0)$ is the starting price, and $X(T) = (r - \frac{\sigma ^ 2}{2}) + \sigma\sqrt{T} * Z$, where $\sqrt{T}Z = W(T)\sim N(0, T)$.
 
-For each previous timestep, walk backward using the following equation:
+Walk backward using the following equation:
 
 $$X(t_i) = \frac{t_{i + 1}}{t_i}X(t_{i + 1}) + \sigma\sqrt{\frac{t_i}{t_{i + 1}} * \Delta t} * Z$$
 
 One may observe that this achieves the starting value at $t = 0$. Therefore, the construction of the Brownian Bridge is complete.
 
-This formulation was taken from [this](http://www.diva-portal.org/smash/get/diva2:818128/FULLTEXT01.pdf) article.
+The formulation was taken from [this](http://www.diva-portal.org/smash/get/diva2:818128/FULLTEXT01.pdf) article.
 
 
 ### Stratification and Double-Regression Enhancement
 
-Another attempted optimization was the stratification and a double-regression enhancement (from [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper). This achieves essentially the same outcome as the **Path Conditions** as it tightens the bounds for paths chosen for regression; this is achieved by comparing the regression values of all viable paths and paths for which "far" in or out-of-the-money are discarded. The regression uses the paths between strike times for prediction. The issue for American options is that there is no "path" between the exercise times since every time is an expiration time. Thus, I decided that the data was too biased toward the most recent iterations to predict the next price accurately. 
+Another attempted optimization was the stratification and a double-regression enhancement (from [this](https://www.sciencedirect.com/science/article/pii/S0165188913000493) paper). This achieves essentially the same outcome as the **Path Conditions** as it tightens the bounds for paths chosen for regression; it compares the regression values of all viable paths and paths for which "far" in or out-of-the-money values are discarded. The regression uses the paths between strike times for prediction. The issue for American options is that there is no "path" between the exercise times since every time is an exercise time. Thus, this method would be too biased toward the most recent iterations to predict the next price accurately. 
 
 A potential workaround is to use the $k$ previous iterations where $k$ is some user-selected number of iterations. I did not implement this as I attempted to keep this method as mathematically sound as possible.
 
-Another issue is that this stratification requires access to **all** paths used for the calculation. [Loop blocking](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) was used to optimize runtime for the path generation so paths were generated in batches of around $200$, and accessing all paths was not possible.
+Another issue is that this stratification requires access to **all** paths used for the calculation. [Loop blocking](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) was used to optimize runtime, so paths were generated in batches of around $200$. Thus, accessing all paths was not possible. Stratification *could* be done within each block, but I did not want to create bias from data sparsity since the block size was much smaller than the total number of paths.
 
 ### Loop Optimizations
 
-[Loop blocking](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) (or tiling) is implemented when iterating over the total number of desired simulations by dividing the number of total simulations by $200$ to optimize cache allocation and hence speed. This is faster than a standard **for** loop since the blocks are small enough to be stored in CPU memory instead of DRAM, decreasing the "distance" the information has to travel to be accessed. The optimal block size is machine-dependent so I encourage any future users to test with their machine to find the most optimal block size. 
+[Loop blocking](https://www.intel.com/content/www/us/en/developer/articles/technical/efficient-use-of-tiling.html) (or tiling) is implemented when iterating over the total number of desired simulations by dividing the number of total simulations by $200$ to optimize cache allocation and hence speed. This is faster than a standard **for** loop since the blocks are small enough to be stored in CPU memory instead of DRAM, decreasing the "distance" the information has to travel to be accessed. The optimal block size is machine-dependent so I encourage future users to test to find theirs. 
 
-[Loop interchanges](https://en.wikipedia.org/wiki/Loop_interchange) were tested in the [*generate-data.cpp*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/generate-data.cpp) file, but improvements were negligible. I assume this is because the order of the vectors being iterated over is in the single digits so changing them around would not have a great effect. The concept of "loop interchange" boils down to making the outermost **for** loop the loop with the greatest number of iterations/data and assigning the inner loop to that with fewer iterations/data since the fewer iterations will allow the data to stay in the CPU cache instead of moving to DRAM. This achieves a similar outcome to *loop blocking*. An example of this is the multiplication of a tall-and-skinny matrix $A$ by a square matrix $B$ as one desires the outer loop to iterate over $A$'s rows and the inner loop to iterate over $A$'s columns to keep the data in the CPU cache.
+[Loop interchanges](https://en.wikipedia.org/wiki/Loop_interchange) were tested in the [*generate-data.cpp*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/generate-data.cpp) file, but improvements were negligible. I assume this is because the order of the vectors being iterated over was in the single digits so changing them around would not make a great difference. The concept of "loop interchange" boils down to making the outermost **for** loop the loop with the greatest number of iterations/data and assigning the inner loop to that with fewer iterations/data since computing fewer iterations at a time will allow the data to stay in the CPU cache instead of moving to DRAM. This achieves a similar outcome to *loop blocking*. An example of this is multiplying a tall-and-skinny matrix $A$ by a square matrix $B$ as one desires the outer loop to iterate over $A$'s rows and the inner loop to iterate over $A$'s columns to keep the data in the CPU cache.
 
 I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission_and_fusion) for which independent computations are put into the same **for** loop to save computation time. This is something I already do, but it's good to know the code is more efficient this way.
 
 ***************PARELLELIZATION*************** talk about thread pooling, mutex locking, computation time decrease
 
 
-## Results
+## Results & Conclusion
 
-ADD METRICS AND PLOTS. In short, the optimized version that I wrote is nearly always more accurate than the original version. Regarding which basis is most accurate, it depends on the input parameters (ADD INFO TO BACK UP). In practice, one would likely choose the Power basis as it is easy to implement and provides marginally different results than the Hermitian and Laguerre bases. If you have an aching desire to know exactly which scenarios the Hermitian and Laguerre bases are more accurate, I encourage you to copy this code and proceed with rigorous testing.
+The optimizations made the method more accurate and faster. The Power basis usually performs about the same as the Hermitian and Laguerre basis which should (hypothetically) perform better due to their increased complexity. Thus, using more complex bases is not incredibly valuable since it does not significantly decrease computation time when compared to the Power basis.
 
-## Conclusion
+Typically, the higher the volatility, the further the strike price out-of-the-money, the lower the risk-free rate, and the higher expiry time implies a greater difference between the original and optimized error (the optimized is almost *always* more accurate). I drew this conclusion by observing each of the plots and changing the standard input values to cross-confirm the trends (mentally constructing a 3D plot between three variables to make sure the results align). One may similarly check themselves or generate 3D plots.
 
-Add metrics on performance and discuss improvements in general.
+There seems to be a significantly greater amount of error across all cases for put options than for calls. I am certain the error for the original method is correct, meaning there must be a methodology error when computing the put prices. This (likely) stems from how the path conditions are formulated. The Laguerre basis performed relatively poorly for expiry times greater than $1$ and strike prices far out of the money for puts. One may complete a further literature review to fully understand this and whether this result agrees with other implementations.
+
+In short, use the optimized method with the Power basis since it is about as fast and provides similar accuracy to the more complex Laguerre and Hermitian bases.
+
+ADD IMAGES
 
 ## My Review of C++
 Fast. Really slow to debug.

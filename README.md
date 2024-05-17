@@ -72,7 +72,7 @@ $$S(T) = S(0) * \exp(X(T))$$
 
 where $S(0)$ is the starting price, and $X(T) = (r - \frac{\sigma ^ 2}{2}) + \sigma\sqrt{T} * Z$, where $\sqrt{T}Z = W(T)\sim N(0, T)$.
 
-For each previous timestep, walk backward using the following equation:
+Walk backward using the following equation:
 
 $$X(t_i) = \frac{t_{i + 1}}{t_i}X(t_{i + 1}) + \sigma\sqrt{\frac{t_i}{t_{i + 1}} * \Delta t} * Z$$
 

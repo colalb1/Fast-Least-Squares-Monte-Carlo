@@ -104,13 +104,11 @@ I also learned the term [loop fusion](https://en.wikipedia.org/wiki/Loop_fission
 
 The optimizations made the method more accurate and faster. The Power basis usually performs about the same as the Hermitian and Laguerre basis which should (hypothetically) perform better due to their increased complexity. Thus, using more complex bases is not incredibly valuable since it does not significantly decrease computation time when compared to the Power basis.
 
-Typically, the higher the volatility, the further the strike price out-of-the-money, the lower the risk-free rate, and the higher the expiry time implies a greater difference between the original and optimized error (the optimized is almost *always* more accurate). I drew this conclusion by observing each of the plots and changing the standard input values to cross-confirm the trends (mentally constructing a 3D plot between three variables to make sure the results align). One may similarly check themselves or generate 3D plots.
+Typically, the higher the volatility, the further the strike price out-of-the-money, the lower the risk-free rate, and the higher the expiry time implies a greater difference between the original and optimized error (the optimized is almost *always* more accurate). I drew this conclusion by observing each of the plots and changing the standard input values to cross-confirm the trends (mentally constructing a 3D plot between three variables to make sure the results align). One may similarly check themselves via the [*optimization_analysis.ipynb*](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/optimization_analysis.ipynb) file, or generate 3D plots.
 
 There seems to be a significantly greater amount of error across all cases for put options than for calls. I am certain the error for the original method is correct, meaning there must be a methodology error when computing the put prices. This (likely) stems from how the path conditions are formulated. The Laguerre basis performed relatively poorly for expiry times greater than $1$ and strike prices far out of the money for puts. One may complete a further literature review to fully understand this and whether this result agrees with other implementations.
 
 In short, use the optimized method with the Power basis since it is about as fast and provides similar accuracy to the more complex Laguerre and Hermitian bases while maintaining implementation simplicity and interpretability.
-
-ADD IMAGES
 
 ## My Review of C++
 Fast. Really slow to debug. It would be better with a wrapper language with a bunch of implicit functions, simpler syntax, and pointer handling so the user can spend less time developing. If only a version of C++ like that existed...

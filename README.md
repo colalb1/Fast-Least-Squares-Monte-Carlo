@@ -66,7 +66,7 @@ The Andersen trigger method (otherwise known as LSA) was also added to improve t
 
 A Brownian Bridge was simulated instead of a Brownian Motion as a Brownian Bridge requires only the last iteration of movement to be stored whereas Brownian Motion requires storage of the whole walk. This saves memory and decreases computation time since a greater portion of the cached information resides in the CPU instead of DRAM. A Brownian Bridge is essentially when the final value of a walk is chosen first, then a pseudo-random iteration process walks the process back to some starting value (basically a Brownian Motion in reverse). I will now present the mathematical formulation of this concept.
 
-Suppose $Z\sim N(0, 1)$ is a random sample from a standard normal distribution. Initialize the final value of the walk such that 
+Suppose $Z\sim N(0, 1)$. Initialize the final value of the walk such that 
 
 $$S(T) = S(0) * \exp(X(T))$$
 

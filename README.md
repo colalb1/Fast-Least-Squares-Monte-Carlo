@@ -1,5 +1,5 @@
 # Fast Least Squares Monte Carlo
-Fast and more accurate implementation of Least-Squares Monte Carlo (Longstaff-Schwartz) for American options in C++. This project is in development; the code and description are incomplete. This project aims to optimize the original Longstaff-Schwartz method to greatly increase accuracy and decrease computation time given equivalent computational parameters (number of grid divisions) via mathematical and programmatic improvements.
+Fast and more accurate implementation of Least-Squares Monte Carlo (Longstaff-Schwartz) for American options in C++. This project aims to optimize the original Longstaff-Schwartz method to greatly increase accuracy and decrease computation time given equivalent computational parameters (number of grid divisions) via mathematical and programmatic improvements.
 
 ## Precursor
 

@@ -54,7 +54,7 @@ In Least-Squares Monte Carlo methods for options pricing, the condition $(S - K)
 
 $$(S_{t} - K) + (S_{t + 1} - K) * \exp(-r(T - 2t)) < (S_{t + 1} - K) * \exp(-r(T - 2(t + 1)))$$
 
-for calls and
+for calls, and
 
 $$(K - S_{t}) + (K - S_{t + 1}) * \exp(-r(T - 2t)) > (K - S_{t + 1}) * \exp(-r(T - 2(t + 1)))$$
 

@@ -113,4 +113,4 @@ In short, use the optimized method with the Power basis since it is about as fas
 ADD IMAGES
 
 ## My Review of C++
-Fast. Really slow to debug.
+Fast. Really slow to debug. It would be better with a wrapper language with a bunch of implicit functions and pointer handling so the user can spend less time developing.

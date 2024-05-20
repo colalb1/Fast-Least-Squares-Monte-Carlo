@@ -108,10 +108,10 @@ Typically, the higher the volatility, the further the strike price out-of-the-mo
 
 There seems to be a significantly greater amount of error across all cases for put options than for calls. I am certain the error for the original method is correct, meaning there must be a methodology error when computing the put prices. This (likely) stems from how the path conditions are formulated. The Laguerre basis performed relatively poorly for expiry times greater than $1$ and strike prices far out of the money for puts. One may complete a further literature review to fully understand this and whether this result agrees with other implementations.
 
-On average, the optimized method decreased computation time by around $27.7$% and decreased $L^2$ relative error by $16.3$%. Below are a couple of plots showing the improvement in accuracy and computation time on the volatility axis.
+On average, the optimized method decreased computation time by around $27.7$% and decreased $L^2$ relative error by $16.3$%. Below are a couple of plots showing the accuracy and computation time improvement on the volatility axis. I encourage you to run the notebook yourself to see more comprehensive results.
 
-![testing caption](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/images/vol-vs-compute.png)
-![testing caption](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/images/vol-vs-error.png)
+![test111](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/images/vol-vs-compute.png)
+![test2](https://github.com/colalb1/Fast-Least-Squares-Monte-Carlo/blob/main/images/vol-vs-error.png)
 
 In short, use the optimized method with the Power basis since it is about as fast and provides similar accuracy to the more complex Laguerre and Hermitian bases while maintaining implementation simplicity and interpretability.
 
